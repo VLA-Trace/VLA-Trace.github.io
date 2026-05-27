@@ -1,1 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href=".\img\20260303-134245.jpg" type="image/x-icon">
+    <title>VLA-Trace</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        }
+        /* 作者弹窗动画 */
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-8px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
 
+        @keyframes slideUp {
+            from {
+                opacity: 1;
+                transform: translateY(0);
+            }
+            to {
+                opacity: 0;
+                transform: translateY(-8px);
+            }
+        }
+
+        .authors.show {
+            display: block !important;
+            animation: slideDown 0.3s ease forwards;
+        }
+
+        .authors.hide {
+            animation: slideUp 0.3s ease forwards;
+        }
+        body {
+            background-color: #fff; 
+            background-image: none;
+            background-position: 0 0;
+            background-size: auto;
+            background-repeat: repeat;
+            padding-top: 0;
+            margin: 0;
+            min-height: 100vh;
+        }
+        .rynn-header {
+            width: 100%;
+            padding: 60px 20px;
+            text-align: center;
+            background: #fbfdff;
+            border-bottom: 1px solid #eef2f8;
+        }
+        /* 纯蓝色文字，无动画 */
+        .epic-wrapper {
+            display: inline-block;
+            letter-spacing: -1px;
+            white-space: nowrap;
+            color: #3b82f6; /* 主蓝色 */
+        }
+        .title {
+            font-size: clamp(24px, 4vw, 44px);
+            font-weight: 400;
+            color: #000;
+            line-height: 1.4;
+            margin-bottom: 30px;
+        }
+        .title span {
+            color: #000;
+        }
+        .button-group {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 14px;
+            margin-top: 10px;
+        }
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 14px 28px;
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            color: #1e293b;
+            text-decoration: none;
+            font-size: 16px;
+            font-weight: 600;
+            transition: all 0.2s ease;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        .btn:hover {
+            background: #f8fafc;
+            border-color: #cbd5e1;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+        }
+        .btn svg {
+            width: 20px;
+            height: 20px;
+        }
+
+        /* Overview */
+        .overview-section {
+            max-width: 1200px;
+            margin: 70px auto 60px;
+            padding: 0 20px;
+            text-align: center;
+        }
+        .overview-title {
+            font-size: 34px;
+            font-weight: 700;
+            color: #1a202c;
+            text-align: center;
+            margin-bottom: 32px;
+        }
+
+        /* Citation */
+        .citation-box {
+            max-width: 1200px;
+            margin: 0 auto 80px;
+            padding: 0 20px;
+        }
+        .citation-card {
+            background: white;
+            border-radius: 16px;
+            padding: 32px;
+            box-shadow: 0 4px 14px rgba(0,0,0,0.08);
+            border: 1px solid #eef2f8;
+        }
+        .citation-title {
+            font-size: 28px;
+            font-weight: 700;
+            color: #1a202c;
+            text-align: center;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        .citation-code {
+            background: #f8fafc;
+            border-radius: 8px;
+            padding: 20px;
+            font-family: monospace;
+            font-size: 13px;
+            line-height: 1.6;
+            color: #1e293b;
+            overflow-x: auto;
+            border: 1px solid #e2e8f0;
+        }
+        pre {
+            margin: 0;
+        }
+
+        footer {
+            width: 100%;
+            padding: 36px 20px;
+            text-align: center;
+            margin-top: 60px;
+            border-top: 1px solid #e2e8f0;
+            background: #fbfdff;
+        }
+        .footer-text {
+            color: #64748b;
+            font-size: 15px;
+            font-weight: 500;
+        }
+    </style>
+</head>
+<body>
+
+<header class="rynn-header">
+    <h1 class="title">
+        <span class="epic-wrapper">VLA-Trace</span>: Diagnosing Vision-Language-Action Models
+        <br>
+        <span>through Representation and Behavior Tracing</span>
+    </h1>
+
+    <div class="button-group">
+        <a href="#" target="_blank" rel="noopener noreferrer" class="btn" style="background: #000; color: #fff; border-color: #000;">
+            <svg xmlns="#" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+            </svg>
+            GitHub
+        </a>
+
+        <a href="https://arxiv.org/abs/xxx" target="_blank" rel="noopener noreferrer" class="btn" style="background: #ef4444; color: #fff; border-color: #ef4444;">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 512" width="20" height="20" fill="currentColor">
+                <path d="M181.9 256.1c-5-16-4.9-46.9-2-46.9 8.4 0 7.6 36.9 2 46.9zm-1.7 47.2c-7.7 20.2-17.3 43.3-28.4 62.7 18.3-7 39-17.2 62.9-21.9-12.7-9.6-24.9-23.4-34.5-40.8zM86.1 428.1c0 .8 13.2-5.4 34.9-40.2-6.7 6.3-29.1 24.5-34.9 40.2zM248 160h136v328c0 13.3-10.7 24-24 24H24c-13.3 0-24-10.7-24-24V24C0 10.7 10.7 0 24 0h200v136c0 13.2 10.8 24 24 24zm-8 171.8c-20-12.2-33.3-29-42.7-53.8 4.5-18.5 11.6-46.6 6.2-64.2-4.7-29.4-42.4-26.5-47.8-6.8-5 18.3-.4 44.1 8.1 77-11.6 27.6-28.7 64.6-40.8 85.8-.1 0-.1.1-.2.1-27.1 13.9-73.6 44.5-54.5 68 5.6 6.9 16 10 21.5 10 17.9 0 35.7-18 61.1-61.8 25.8-8.5 54.1-19.1 79-23.2 21.7 11.8 47.1 19.5 64 19.5 29.2 0 31.2-32 19.7-43.4-13.9-13.6-54.3-9.7-73.6-7.2zM377 105L279 7c-4.5-4.5-10.6-7-17-7h-6v128h128v-6.1c0-6.3-2.5-12.4-7-16.9zm-74.1 255.3c4.1-2.7-2.5-11.9-42.8-9 37.1 15.8 42.8 9 42.8 9z"></path>
+            </svg>
+            Paper
+        </a>
+    </div>
+</header>
+
+<!-- Overview -->
+<section id="overview" class="overview-section">
+    <h2 class="overview-title">Overview</h2>
+    <div style="text-align: center;">
+        <img src="img\overview0526_01.png" 
+             style="max-width: 100%; height: auto; border-radius: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);"
+             alt="Overview">
+    </div>
+</section>
+
+<!-- Citation -->
+<section class="citation-box">
+    <div class="citation-card">
+        <div class="citation-title">📝 Citation</div>
+        <div class="citation-code">
+<pre>
+@misc{xxx2026vlatrace,
+    title={VLA-Trace: Diagnosing Vision-Language-Action Models through Representation and Behavior Tracing},
+    author={xxx},
+    year={2026},
+    eprint={xxxx.xxxxx},
+    archivePrefix={arXiv},
+    primaryClass={cs.CV}
+}
+</pre>
+        </div>
+    </div>
+</section>
+
+<footer>
+    <p class="footer-text">© 2025 VLA-Trace Team</p>
+</footer>
+
+</body>
+</html>
