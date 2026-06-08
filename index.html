@@ -51,7 +51,7 @@
     }
     .brand { display:flex; align-items:center; gap:10px; font-weight: 900; letter-spacing: -.02em; }
     .brand-dot { width: 34px; height: 34px; border-radius: 12px; background: linear-gradient(135deg,var(--blue),var(--cyan)); box-shadow: 0 12px 30px rgba(47,85,212,.28); }
-    .nav-links { display:flex; gap:18px; align-items:center; color: var(--muted); font-size:14px; font-weight:700; }
+    .nav-links { display:flex; gap:18px; align-items:center; color: #000 !important; font-size:14px; font-weight:700; }
     .nav-links a:hover { color: var(--blue); }
     .wrap { max-width: var(--max); margin: 0 auto; padding: 0 20px; }
     .hero { padding: 72px 0 44px; }
@@ -653,7 +653,7 @@
     .carousel-shell.highlight,
     .card.highlight,
     .finding.highlight {
-      animation: highlightCard 1.5s ease-out 3;
+      animation: highlightCard 1.5s ease-out 2;
     }
 
 
@@ -1462,7 +1462,7 @@ GitHub
         View S3 + table <span style="margin-left:2px;">↗</span>
       </a>
     </div>
-    <p style="font-size:12px; color:var(--muted); margin:8px 0 0;">Related evidence: S3 · Visual Masking.</p>
+    <p style="font-size:12px; color:var(--muted); margin:8px 0 0;">Related evidence: S3 · Visual Patch Masking.</p>
   </div>
 
   <div class="card finding" id="finding6">
@@ -1599,34 +1599,50 @@ GitHub
     });
   }
 
-  // 跳转并高亮卡片
-  // 跳转并高亮（区分 finding 卡片 / 轮播容器，10秒自动消失）
+  // 清除所有高亮
+  function clearAllHighlights() {
+    document.querySelectorAll('.highlight').forEach(el => el.classList.remove('highlight'));
+  }
+
+  // 高亮一组元素
+  function highlightTargets(ids) {
+    clearAllHighlights();
+    ids.forEach(id => {
+      const el = document.querySelector(id);
+      if (el) {
+        el.classList.add('highlight');
+        setTimeout(() => el.classList.remove('highlight'), 10000);
+      }
+    });
+  }
+
+  // 跳转并高亮（完美兼容所有链接）
   function scrollToAndHighlight(id) {
     const target = document.querySelector(id);
     if (!target) return;
 
-    // 1. 清除页面所有已存在的高亮
-    document.querySelectorAll('.highlight').forEach(el => {
-      el.classList.remove('highlight');
-    });
-
-    // 2. 平滑滚动到目标
+    // 统一先滚动
     target.scrollIntoView({ behavior: 'smooth', block: 'center' });
 
-    // 3. 添加高亮
-    target.classList.add('highlight');
-
-    // 4. 10秒后移除高亮
-    setTimeout(() => {
-      target.classList.remove('highlight');
-    }, 10000);
+    // 只对 finding 按钮做分组高亮
+    if (id === '#finding1' || id === '#finding2') {
+      highlightTargets(['#finding1', '#finding2']);
+    } else if (id === '#finding3' || id === '#finding4') {
+      highlightTargets(['#finding3', '#finding4']);
+    } else if (id === '#finding5' || id === '#finding6' || id === '#finding7') {
+      highlightTargets(['#finding5', '#finding6', '#finding7']);
+    } else {
+      // 其他链接（轮播、目录、普通锚点）：只跳转，不影响高亮
+      clearAllHighlights();
+      target.classList.add('highlight');
+      setTimeout(() => target.classList.remove('highlight'), 10000);
+    }
   }
 
-  // 绑定所有锚点跳转链接
+  // 绑定所有锚点
   document.querySelectorAll('a[href^="#"]').forEach(link => {
     link.addEventListener('click', function(e) {
       const href = this.getAttribute('href');
-      // 只处理本页锚点
       if (href.startsWith('#') && href.length > 1) {
         e.preventDefault();
         scrollToAndHighlight(href);
