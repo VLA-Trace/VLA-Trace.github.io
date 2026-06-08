@@ -683,7 +683,7 @@ GitHub
 <div class="section-head">
 <span class="kicker">Motivation</span>
 <h2>VLA models can act — but why do they act?</h2>
-<p>Modern VLA policies inherit strong vision-language priors, but robot-policy learning can reshape those priors in non-obvious ways. VLA-Trace turns this black-box question into a stage-wise diagnosis.</p>
+<p>High success rates reveal what VLA models do, but not how they actually work.VLA-Trace bridges this gap through representation, control, and behavior tracing.</p>
 </div>
 
 <div class="grid-2">
@@ -717,22 +717,18 @@ GitHub
     </div>
     <div class="question-list evidence-list">
       <div class="question">
-        <b>Representation Geometry</b>
+        <b>Representation Shifts</b>
         <span>What is preserved or reorganized?</span>
       </div>
       <div class="question">
-        <b>Causal Attribution</b>
+        <b>Causal Pathways</b>
         <span>What pathway is necessary for action?</span>
       </div>
       <div class="question">
-        <b>Behavioral Manifestation</b>
+        <b>Behavioral Probes</b>
         <span>What does the robot actually rely on?</span>
       </div>
     </div>
-  </div>
-
-  <div class="callout">
-    <strong>Takeaway:</strong> High success rates reveal what VLA models do, but not how they actually work.VLA-Trace bridges this gap through representation, control, and behavior tracing.
   </div>
 </div>
 </section>
@@ -746,7 +742,7 @@ GitHub
 <div class="stage">
 <a href="#s1-block" class="step-btn">S1</a>
 <div class="card">
-<span class="pill">Representation tracing</span>
+<span class="pill">Representation Shifts</span>
 <h3>Cross-modal &amp; checkpoint-drift CKA</h3>
 <p>Measure image–text alignment and whether visual, textual, and joint subspaces are preserved or reorganized across C0, C1, and C2.</p>
 </div>
@@ -754,7 +750,7 @@ GitHub
 <div class="stage">
 <a href="#s2-block" class="step-btn">S2</a>
 <div class="card">
-<span class="pill green">Causal tracing</span>
+<span class="pill green">Causal Pathways</span>
 <h3>Attention knockout</h3>
 <p>Block selected token pathways during prefill or generation to test whether vision, language, structural prompt tokens, or action paths are necessary.</p>
 </div>
@@ -762,7 +758,7 @@ GitHub
 <div class="stage">
 <a href="#s3-block" class="step-btn">S3</a>
 <div class="card">
-<span class="pill orange">Behavior tracing</span>
+<span class="pill orange">Behavioral Probes</span>
 <h3>Rollout probes</h3>
 <p>Use attention IoU, patch masking, and input editing to expose grounding, shortcut dependence, and fine-grained semantic controllability.</p>
 </div>
