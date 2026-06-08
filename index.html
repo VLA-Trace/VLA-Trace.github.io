@@ -1,209 +1,1299 @@
 <!DOCTYPE html>
+
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="icon" href=".\img\20260303-134245.jpg" type="image/x-icon">
-    <title>VLA-Trace</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-        }
-        /* 全局统一纯白背景，所有区域共用 */
-        body {
-            background-color: #ffffff; 
-            background-image: none;
-            padding: 0;
-            margin: 0;
-            min-height: 100vh;
-        }
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>VLA-Trace | Diagnosing Vision-Language-Action Models</title>
+<meta content="VLA-Trace is a diagnostic framework for tracing representation dynamics, causal control pathways, and behavioral manifestations in Vision-Language-Action models." name="description"/>
+<style>
+    :root {
+      --bg: #f7faff;
+      --paper: rgba(255,255,255,.92);
+      --paper2: #ffffff;
+      --ink: #0f172a;
+      --muted: #5b6477;
+      --soft: #e8eefc;
+      --line: #dbe4f4;
+      --blue: #2f55d4;
+      --blue2: #6b7cff;
+      --cyan: #0ea5b7;
+      --orange: #f97316;
+      --green: #16a34a;
+      --purple: #7c3aed;
+      --red: #ef4444;
+      --shadow: 0 24px 70px rgba(15, 23, 42, .11);
+      --radius: 24px;
+      --max: 1360px;
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at top left, rgba(47,85,212,.16), transparent 34vw),
+        radial-gradient(circle at 85% 6%, rgba(14,165,183,.15), transparent 30vw),
+        linear-gradient(180deg, #fbfdff 0%, var(--bg) 40%, #fff 100%);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+    a { color: inherit; text-decoration: none; }
+    .nav {
+      position: sticky; top: 0; z-index: 50;
+      backdrop-filter: blur(18px);
+      background: rgba(248,251,255,.82);
+      border-bottom: 1px solid rgba(219,228,244,.85);
+    }
+    .nav-inner {
+      max-width: var(--max); margin: 0 auto; padding: 14px 20px;
+      display: flex; justify-content: space-between; align-items: center; gap: 14px;
+    }
+    .brand { display:flex; align-items:center; gap:10px; font-weight: 900; letter-spacing: -.02em; }
+    .brand-dot { width: 34px; height: 34px; border-radius: 12px; background: linear-gradient(135deg,var(--blue),var(--cyan)); box-shadow: 0 12px 30px rgba(47,85,212,.28); }
+    .nav-links { display:flex; gap:18px; align-items:center; color: var(--muted); font-size:14px; font-weight:700; }
+    .nav-links a:hover { color: var(--blue); }
+    .wrap { max-width: var(--max); margin: 0 auto; padding: 0 20px; }
+    .hero { padding: 72px 0 44px; }
+    .hero-grid { display:grid; grid-template-columns: 0.85fr 1.15fr; gap: 38px; align-items:center; }
+    .eyebrow {
+      display:inline-flex; gap:8px; align-items:center;
+      padding: 8px 12px; border: 1px solid var(--line); border-radius:999px;
+      background: rgba(255,255,255,.78); color: var(--blue); font-weight: 800; font-size: 13px;
+    }
+    h1 { margin: 20px 0 12px; font-size: clamp(46px, 7vw, 86px); line-height: .92; letter-spacing: -.06em; }
+    .subtitle { margin: 0; font-size: clamp(19px, 2.6vw, 29px); line-height: 1.23; color: #1e293b; font-weight: 800; letter-spacing: -.035em; }
+    .lead { margin: 20px 0 0; font-size: 18px; line-height: 1.72; color: var(--muted); max-width: 720px; }
+    .actions { display:flex; gap:12px; flex-wrap:wrap; margin-top: 28px; }
+    .btn {
+      display:inline-flex; align-items:center; justify-content:center; gap:8px;
+      min-height: 45px; padding: 0 16px; border-radius: 999px; font-weight: 850; font-size:14px;
+      border: 1px solid var(--line); background: white; box-shadow: 0 14px 34px rgba(15,23,42,.08);
+    }
+    .btn-icon{
+      width:24px;
+      height:24px;
+      object-fit:contain;
+      flex-shrink:0;
+    }
+    .github-icon{
+      height:16px;
+      width:auto;
+    }
+    .btn.primary { color: white; border-color: transparent; background: linear-gradient(135deg,var(--blue),var(--cyan)); }
+    .hero-card {
+      background: var(--paper); border: 1px solid var(--line); border-radius: 32px; padding: 18px;
+      box-shadow: var(--shadow);
+    }
+    .hero-card img { width:100%; display:block; border-radius: 20px; border: 1px solid var(--line); background:#fff; cursor: zoom-in; }
+    .caption { color: var(--muted); font-size: 13px; line-height:1.55; margin: 12px 4px 0; }
+    .stats { display:grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-top: 28px; }
+    .stat { padding: 16px; border:1px solid var(--line); background: rgba(255,255,255,.78); border-radius: 20px; }
+    .stat strong { display:block; font-size: 22px; color: var(--ink); }
+    .stat span { display:block; margin-top:4px; color: var(--muted); font-size: 13px; line-height:1.35; }
+    section { padding: 64px 0; }
+    .section-head { max-width: 780px; margin-bottom: 26px; }
+    .kicker { font-size: 12px; text-transform: uppercase; letter-spacing:.15em; color: var(--blue); font-weight: 900; }
+    h2 { margin: 8px 0 10px; font-size: clamp(25px, 4vw, 32px); line-height: 1.05; letter-spacing: -.045em; }
+    .section-head p { margin: 0; color: var(--muted); font-size: 17px; line-height: 1.72; }
+    
+    .grid-2 { display:grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 18px; align-items: stretch; }
+    .grid-3 { display:grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 18px; }
+    .grid-4 { display:grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap: 14px; }
+    
+    /* 🛠️ 優化：將 card 改為內容默認全部頂部靠上對齊，不再上下撐開文字 */
+    .card { 
+      background: var(--paper2); border:1px solid var(--line); border-radius: var(--radius); padding: 34px; 
+      box-shadow: 0 18px 46px rgba(15,23,42,.06); 
+      display: flex; flex-direction: column; justify-content: flex-start;
+    }
+    .card h3 { margin: 0 0 12px; font-size: 34px; letter-spacing:-.025em; line-height: 1.3; }
+    .card p { margin: 0; color: var(--muted); line-height: 1.65; font-size: 15px; }
+    .card ul { margin: 12px 0 0; padding-left: 18px; color: var(--muted); line-height: 1.65; }
+    .pill { display:inline-flex; align-items:center; padding:5px 10px; border-radius:999px; font-size: 12px; font-weight: 900; background: #eff6ff; color: var(--blue); margin-bottom: 12px; width: max-content; }
+    .pill.green { background:#ecfdf5; color: var(--green); }
+    .pill.orange { background:#fff7ed; color: var(--orange); }
+    .pill.purple { background:#f5f3ff; color: var(--purple); }
+    
+    .problem { background: #0f172a; color: white; border-radius: 34px; padding: 34px; overflow:hidden; position: relative; display: flex; flex-direction: column; justify-content: space-between; }
+    .problem:before { content:""; position:absolute; inset:-40%; background: radial-gradient(circle, rgba(99,102,241,.28), transparent 45%); transform: translate(34%, -22%); }
+    .problem > * { position: relative; }
+    .problem p { color: #dbeafe; font-size: 15px; }
+    
+    .question-list {
+      display: grid;
+      gap: 12px;
+      padding-top: 22px; /* 🚀 加上這行！數值越大，三個邊框整體越往下移 */
+      flex-grow: 1;
+      grid-template-rows: repeat(3, 1fr);
+      align-items: stretch;
+    }
+    /* 🚀 專門針對右側白色卡片內的邊框進行下移 */
+    .card .question-list {
+      padding-top: 40px; /* 數值越大，右側的三個邊框整體越往下移 */
+    }
 
-        /* 头部：无独立背景，无分割线 */
-        .rynn-header {
-            width: 100%;
-            padding: 60px 20px;
-            text-align: center;
-            background: transparent; /* 继承全局背景，不单独设置 */
-            border: none; /* 去掉底部边框线 */
-        }
+    .question {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      gap: 4px;
+      padding: 16px 18px;
+      border: 1px solid rgba(255,255,255,.14);
+      border-radius: 18px;
+      background: rgba(255,255,255,.06);
+      height: 100%;
+      box-sizing: border-box;
+    }
 
-        .epic-wrapper {
-            display: inline-block;
-            letter-spacing: -1px;
-            white-space: nowrap;
-            color: #3b82f6;
-        }
-        .title {
-            font-size: clamp(24px, 4vw, 44px);
-            font-weight: 400;
-            color: #000;
-            line-height: 1.4;
-            margin-bottom: 30px;
-        }
-        .title span {
-            color: #000;
-        }
-        .button-group {
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: center;
-            gap: 14px;
-            margin-top: 10px;
-        }
-        .btn {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            padding: 14px 28px;
-            background: white;
-            border: 1px solid #e2e8f0;
-            border-radius: 12px;
-            color: #1e293b;
-            text-decoration: none;
-            font-size: 16px;
-            font-weight: 600;
-            transition: all 0.2s ease;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-        }
-        .btn:hover {
-            background: #f8fafc;
-            border-color: #cbd5e1;
-            transform: translateY(-1px);
-            box-shadow: 0 4px 10px rgba(0,0,0,0.08);
-        }
-        .btn svg {
-            width: 20px;
-            height: 20px;
-        }
+    .question b {
+      display: block;
+      color: white;
+      font-size: 15px;
+      font-weight: 800;
+      line-height: 1.3;
+    }
 
-        /* 概述：继承全局背景 */
-        .overview-section {
-            max-width: 1200px;
-            margin: 70px auto 60px;
-            padding: 0 20px;
-            text-align: center;
-            background: transparent;
-        }
-        .overview-title {
-            font-size: 34px;
-            font-weight: 700;
-            color: #1a202c;
-            text-align: center;
-            margin-top:0px;
-            margin-bottom: 32px;
-        }
+    .question span {
+      color: #dbeafe;
+      line-height: 1.5;
+      font-size: 14px;
+    }
+    .evidence-list .question {
+      background: #f8fbff;
+      border: 1px solid #dbe4f4;
+    }
 
-        /* 引用：继承全局背景 */
-        .citation-box {
-            max-width: 1200px;
-            margin: 0 auto 80px;
-            padding: 0 20px;
-            background: transparent;
-        }
-        .citation-card {
-            background: white;
-            border-radius: 16px;
-            padding: 32px;
-            box-shadow: 0 4px 14px rgba(0,0,0,0.08);
-            border: 1px solid #eef2f8;
-        }
-        .citation-title {
-            font-size: 28px;
-            font-weight: 700;
-            color: #1a202c;
-            text-align: center;
-            margin-bottom: 20px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-        }
-        .citation-code {
-            background: #f8fafc;
-            border-radius: 8px;
-            padding: 20px;
-            font-family: monospace;
-            font-size: 11.9px;
-            line-height: 1.6;
-            color: #1e293b;
-            overflow-x: auto;
-            border: 1px solid #e2e8f0;
-        }
-        pre {
-            margin: 0;
-        }
-    </style>
+    .evidence-list .question b {
+      color: var(--ink);
+    }
+
+    .evidence-list .question span {
+      color: var(--muted);
+    }
+
+    /* Method Timeline 完美等高排列，內容同時靠上對齊 */
+    .timeline { 
+      display: grid; 
+      grid-template-columns: repeat(3, 1fr); 
+      gap: 18px; 
+      position: relative; 
+      align-items: stretch; 
+    }
+    .stage { 
+      position: relative; 
+      padding-top: 28px; 
+      display: flex;         
+      flex-direction: column; 
+    }
+    .stage .card {
+      flex-grow: 1;          
+    }
+    .step-btn {
+      position:absolute; top:0; left:24px; transform: translateY(-50%);
+      width:42px; height:42px; border-radius: 16px; color:white;
+      background: linear-gradient(135deg,var(--blue),var(--cyan));
+      display:flex; align-items:center; justify-content:center; font-weight: 900;
+      box-shadow: 0 10px 28px rgba(47,85,212,.22);
+      cursor: pointer;
+      text-decoration: none;
+      z-index: 2;
+    }
+    .probe-table, .small-table { width:100%; border-collapse: collapse; overflow:hidden; font-size: 14px; }
+    .table-wrap { overflow:auto; border:1px solid var(--line); border-radius: 20px; background:#fff; }
+    th, td { padding: 12px 14px; border-bottom:1px solid var(--line); text-align:left; vertical-align: top; }
+    th { background:#f5f8ff; color:#334155; font-weight:900; white-space:nowrap; }
+    tr:last-child td { border-bottom:none; }
+    td.num { font-variant-numeric: tabular-nums; white-space:nowrap; text-align:right; }
+    .tag { display:inline-block; padding:3px 8px; border-radius: 999px; background:#eef2ff; color:#3730a3; font-size:12px; font-weight:900; margin:1px; }
+    .tag.green { background:#dcfce7; color:#166534; }
+    .tag.gray { background:#f1f5f9; color:#475569; }
+    .figure-grid { display:grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+    .figure-card { background:white; border:1px solid var(--line); border-radius: 24px; overflow:hidden; box-shadow: 0 18px 46px rgba(15,23,42,.07); }
+    .figure-card img { width:100%; display:block; background:white; cursor:zoom-in; }
+    .fig-text { padding: 18px; }
+    .fig-text h3 { margin: 0 0 8px; font-size: 20px; }
+    .fig-text p { margin: 0; color:var(--muted); line-height:1.6; }
+    .wide { grid-column: span 2; }
+    .findings { counter-reset: finding; }
+    .finding { position:relative; padding-left: 74px; }
+    .finding:before { counter-increment: finding; content: counter(finding); position:absolute; left:22px; top:50px; width:36px; height:36px; border-radius:14px; background:#eff6ff; color:var(--blue); display:flex; align-items:center; justify-content:center; font-weight:900; }
+    details { background:white; border:1px solid var(--line); border-radius: 20px; padding: 0; box-shadow: 0 14px 34px rgba(15,23,42,.05); overflow: hidden; }
+    details + details { margin-top: 12px; }
+    summary { cursor:pointer; list-style:none; padding: 18px 22px; font-weight:900; display:flex; justify-content:space-between; align-items:center; }
+    summary::-webkit-details-marker { display:none; }
+    summary:after { content:"+"; font-size:24px; color:var(--blue); }
+    details[open] summary:after { content:"–"; }
+    .detail-body { padding: 0 22px 20px; color: var(--muted); line-height: 1.65; }
+    .detail-body code, pre { background:#f8fafc; border:1px solid var(--line); border-radius:12px; padding: 2px 6px; color:#1e293b; }
+    pre { padding: 18px; overflow:auto; line-height:1.45; }
+    
+    .callout { border: 1px solid #bfdbfe; background: linear-gradient(135deg,#eff6ff,#f8fbff); border-radius: 24px; padding: 24px; margin-top: 24px; grid-column: span 2; }
+    .callout strong { color:#1d4ed8; }
+    .repo { background:#0b1220; color:#e2e8f0; border-radius: 24px; padding: 24px; overflow:auto; }
+    .repo code { color:#e2e8f0; }
+    footer { padding: 44px 20px 72px; color: var(--muted); text-align:center; }
+    .lightbox { display:none; position: fixed; z-index: 100; inset: 0; background: rgba(2,6,23,.86); padding: 28px; align-items:center; justify-content:center; }
+    .lightbox.active { display:flex; }
+    .lightbox img { max-width: min(96vw, 1400px); max-height: 90vh; background:#fff; border-radius: 14px; }
+    .close { position: fixed; top: 18px; right: 24px; color: white; font-size: 36px; cursor:pointer; }
+
+    .carousel-shell {
+      background: rgba(255,255,255,.96);
+      border: 1px solid var(--line);
+      border-radius: 30px;
+      padding: 18px;
+      box-shadow: var(--shadow);
+      margin: 22px 0;
+      overflow: hidden;
+    }
+    .carousel-topline {
+      display:flex; align-items:flex-start; justify-content:space-between; gap: 18px;
+      padding: 4px 4px 14px;
+    }
+    .carousel-topline h3 { margin: 2px 0 0; font-size: 24px; letter-spacing: -.035em; }
+    .carousel-controls { display:flex; gap: 10px; flex: 0 0 auto; }
+    .carousel-btn {
+      width: 42px; height: 42px; border-radius: 999px;
+      border: 1px solid var(--line); background: #fff; color: var(--blue);
+      font-size: 28px; line-height: 1; font-weight: 800; cursor: pointer;
+      box-shadow: 0 12px 28px rgba(15,23,42,.08);
+    }
+    .carousel-btn:hover { background:#eff6ff; transform: translateY(-1px); }
+    .carousel-viewport {
+      position: relative; min-height: 560px;
+      border-radius: 24px; overflow: hidden;
+      border: 1px solid var(--line); background: #f8fafc;
+    }
+    .carousel-slide {
+      position: absolute; inset: 0;
+      opacity: 0; pointer-events: none;
+      transform: translateX(22px) scale(.992);
+      transition: opacity .32s ease, transform .32s ease;
+      display: grid; grid-template-columns: 1.45fr .55fr; gap: 0;
+      background: white;
+    }
+    .carousel-slide.active { opacity: 1; pointer-events: auto; transform: translateX(0) scale(1); }
+    .slide-media { display:flex; align-items:center; justify-content:center; background:#fff; padding: 12px; min-width:0; }
+    .slide-media img { width:100%; height:100%; max-height: 540px; object-fit: contain; cursor: zoom-in; border-radius: 16px; }
+    /* 修改前 */
+    .slide-copy {
+      padding: 24px;
+      background: linear-gradient(180deg,#f8fbff,#ffffff);
+      border-left: 1px solid var(--line);
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-start; /* 如果原本是 center 或 space-between，請確保它是 flex-start */
+    }
+    .slide-stage {
+      display:inline-flex; width:max-content; margin-bottom: 14px;
+      color: var(--blue); background:#eef4ff; border-radius:999px; padding:6px 10px;
+      font-size:12px; font-weight:900; letter-spacing:.04em; text-transform:uppercase;
+    }
+    .slide-copy h3 { margin:0 0 12px; font-size: clamp(23px, 2.5vw, 34px); line-height:1.08; letter-spacing:-.04em; }
+    .slide-copy p { margin:0; color:var(--muted); line-height:1.72; font-size:15px; }
+    .carousel-footer { display:flex; align-items:center; justify-content:space-between; gap: 14px; padding: 14px 4px 4px; }
+    .carousel-dots { display:flex; align-items:center; gap: 8px; flex-wrap:wrap; }
+    .carousel-dot {
+      width: 9px; height: 9px; border-radius:999px; border:0; padding:0; cursor:pointer;
+      background:#cbd5e1; transition: width .2s ease, background .2s ease;
+    }
+    .carousel-dot.active { width: 28px; background: linear-gradient(135deg,var(--blue),var(--cyan)); }
+    .slide-counter { color: var(--muted); font-size: 13px; font-weight: 850; }
+    .thumb-strip {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      justify-content: center;
+      margin-top: 14px;
+    }
+
+    .thumb {
+      flex: 0 0 calc(33.333% - 7px);
+      border: 1px solid var(--line); background:#fff; border-radius: 16px; padding: 8px; cursor: pointer;
+      display:grid; grid-template-rows: 74px auto; gap: 7px; text-align:left; color: var(--muted);
+      box-shadow: 0 10px 22px rgba(15,23,42,.04);
+    }
+    .thumb img { width: 100%; height: 74px; object-fit: cover; border-radius: 10px; background:#f8fafc; }
+    .thumb span { font-size: 12px; line-height:1.25; font-weight:850; }
+    .thumb.active { border-color: rgba(47,85,212,.55); box-shadow: 0 0 0 3px rgba(47,85,212,.10); color: var(--blue); }
+    
+    .mini-carousel-grid {
+      display: grid;
+      grid-template-columns: 1fr; 
+      gap: 28px;                  
+      margin-top: 24px;
+    }
+
+    .carousel-shell.compact { 
+      margin: 0; 
+      background: rgba(255,255,255,.96) !important;
+      border: 1px solid var(--line) !important;
+      border-radius: 30px !important;
+      box-shadow: var(--shadow) !important;
+      padding: 24px 28px !important;
+    }
+
+    .compact-head h3 { font-size: 20px; }
+    .compact .carousel-btn { width: 36px; height: 36px; font-size: 24px; }
+
+    .compact .carousel-viewport {
+      border: none !important;
+      background: transparent !important;
+      box-shadow: none !important;
+      height: auto !important;
+      min-height: 0 !important;
+      position: relative;
+    }
+
+    .compact .carousel-slide {
+      position: relative;
+      display: none;
+      opacity: 0;
+      transition: opacity .3s ease;
+      grid-template-columns: 0.8fr 1.2fr !important;  
+      grid-template-rows: auto !important;         
+      background: transparent !important;
+      gap: 3.5rem !important; 
+      align-items: flex-start !important; 
+      width: 100%;
+    }
+    
+    .compact .carousel-slide.active { 
+      display: grid !important; 
+      opacity: 1; 
+      pointer-events: auto; 
+    }
+
+    .compact .slide-media {
+      order: 2 !important; 
+      height: auto !important;
+      padding: 0 !important;
+      background: transparent !important;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+    }
+
+    .compact .slide-media img {
+      width: 100% !important;
+      height: auto !important;
+      max-height: 500px !important;
+      object-fit: contain !important; 
+      border: none !important;
+      box-shadow: none !important;
+      border-radius: 14px !important;
+      display: block;
+    }
+
+    /* 修改後 */
+    .compact .slide-copy { 
+      order: 1 !important; 
+      border-left: none !important; 
+      border-top: none !important;
+      padding: 0 !important; 
+      background: transparent !important;
+      display: flex !important;
+      flex-direction: column !important;
+      justify-content: flex-start !important; /* 內部元素靠頂 */
+      align-self: flex-start !important;      /* 自身在網格中靠頂，防止被垂直拉伸 */
+      text-align: left !important;
+    }
+    .video-stack{
+        display:flex !important;
+        flex-direction:column !important;
+        gap:14px;
+    }
+
+    .video-item{
+        width:100%;
+    }
+
+    .video-item video{
+        width:100%;
+        max-height:100px;
+        border-radius:14px;
+        object-fit:contain;
+    }
+
+    .video-tag{
+        display:inline-block;
+        margin-bottom:8px;
+        padding:4px 10px;
+        border-radius:999px;
+        font-size:12px;
+        font-weight:800;
+        letter-spacing:.04em;
+    }
+
+    .video-tag.success{
+        background:#dcfce7;
+        color:#166534;
+    }
+
+    .video-tag.failure{
+        background:#fee2e2;
+        color:#b91c1c;
+    }
+
+    .compact .slide-copy h3 { font-size: 24px !important; margin: 0 0 12px 0 !important; color: var(--ink); letter-spacing: -.03em !important; line-height: 1.2 !important; }
+    .compact .slide-copy p { font-size: 14.5px !important; line-height: 1.65 !important; color: var(--muted); margin: 0; }
+
+    .experiment-index { margin-top: 24px; }
+    .index-grid { display:grid; grid-template-columns: repeat(3,1fr); gap: 18px; }
+    .index-grid b { display:block; margin-bottom:6px; color:var(--ink); }
+    .index-grid p { margin:0; color:var(--muted); line-height:1.6; }
+
+    .appendix-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+    .appendix-pane { display: flex; flex-direction: column; gap: 16px; }
+    .appendix-block { background: white; border: 1px solid var(--line); border-radius: 20px; padding: 22px; box-shadow: 0 10px 30px rgba(15, 23, 42, .04); }
+    .appendix-block-title { font-weight: 900; font-size: 18px; margin: 0 0 6px 0; display: flex; align-items: center; gap: 8px; }
+    .appendix-block-subtitle { font-size: 14px; font-weight: 700; margin: 0 0 12px 0; color: var(--ink); }
+    .appendix-block-text { font-size: 14px; color: var(--muted); line-height: 1.6; margin: 0 0 16px 0; }
+    .appendix-evidence-title { font-size: 12px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.05em; color: #475569; margin: 0 0 8px 0; }
+    .appendix-list { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 6px; font-size: 14px; color: var(--muted); }
+    .appendix-list li { display: flex; align-items: flex-start; gap: 6px; line-height: 1.5; }
+    .appendix-list li::before { content: "✓"; font-weight: 900; }
+    .blue-theme .appendix-list li::before { color: var(--blue); }
+    .green-theme .appendix-list li::before { color: var(--green); }
+    .orange-theme .appendix-list li::before { color: var(--orange); }
+    .appendix-block.blue-theme { border-left: 4px solid var(--blue); }
+    .appendix-block.green-theme { border-left: 4px solid var(--green); }
+    .appendix-block.orange-theme { border-left: 4px solid var(--orange); }
+
+    /* 💡 修正：為 Findings 部分個別加上靠底標籤的彈性分佈，不與全局 card 衝突 */
+    .finding-card-content { flex-grow: 1; display: flex; flex-direction: column; justify-content: flex-start; }
+    /* 僅強制 S1, S2, S3 輪播容器內的文字全部靠上對齊 */
+    .slide-copy, .compact .slide-copy {
+      justify-content: flex-start !important;
+    }
+    /* 🎯 僅縮小指定卡片組中的 h3 字體，完全不影響大輪播、小輪播或網頁其他 h3 */
+    .grid-4 .card h3, 
+    .grid-3 .card h3 {
+      font-size: 1.3rem !important; /* 原始一般是 1.4rem~1.5rem，這裡縮小到 1.15rem，你可以根據視覺效果微調 */
+      margin-top: 8px !important;    /* 稍微優化一下與上方標籤（pill）的間距 */
+      margin-bottom: 6px !important; /* 稍微優化一下與下方描述文字的間距 */
+    }
+    /* Paper metadata: authors and affiliations */
+    .paper-meta {
+      margin-top: 20px;
+      padding: 20px 22px;
+      border: 1px solid rgba(47,85,212,.18);
+      border-radius: 22px;
+      background: linear-gradient(135deg, rgba(255,255,255,.88), rgba(232,238,252,.72));
+      box-shadow: 0 18px 45px rgba(15, 23, 42, .07);
+      max-width: 760px;
+    }
+    .authors {
+      font-size: 14px;
+      line-height: 1.85;
+      color: #1f2a44;
+      font-weight: 650;
+      white-space: nowrap;
+      overflow-x: auto;
+    }
+    .authors a {
+      color: var(--blue);
+      text-decoration: none;
+    }
+    .authors a:hover { border-bottom-color: rgba(47,85,212,.7); }
+    .authors sup, .affiliations sup { font-size: 10px; color: var(--blue); font-weight: 900; }
+    .affiliations {
+      margin-top: 12px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      font-size: 12.5px;
+      line-height: 1.6;
+      color: var(--muted);
+    }
+    .affiliations span {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 6px 10px;
+      border-radius: 999px;
+      background: rgba(255,255,255,.78);
+      border: 1px solid rgba(219,228,244,.92);
+    }
+    .author-notes {
+      margin-top: 10px;
+      color: #64748b;
+      font-size: 12.5px;
+      line-height: 1.55;
+    }
+    .subtitle-sm {
+      font-size: calc(clamp(19px, 2.6vw, 29px) * 0.8) !important;
+    }
+    section.hero h2 { font-size: 60px !important; line-height:1.0 !important; }
+    .video-stack{
+        display:flex !important;
+        flex-direction:column !important;
+        gap:12px;
+    }
+
+    .video-stack video{
+        width:100% !important;
+        max-height:500px;
+    }
+    @media (max-width: 980px) {
+      .hero-grid, .grid-2, .timeline, .figure-grid, .appendix-grid { grid-template-columns: 1fr; }
+      .grid-3, .grid-4, .stats { grid-template-columns: repeat(2, minmax(0,1fr)); }
+      .wide { grid-column: span 1; }
+      .nav-links { display: none; }
+      .hero { padding-top: 46px; }
+      .callout { grid-column: span 1; }
+      .timeline { align-items: stretch; }
+      .stage { padding-top: 28px; margin-bottom: 20px; }
+
+      .main-carousel .carousel-viewport { min-height: 520px; } 
+      .main-carousel .carousel-slide { 
+        grid-template-columns: 1fr; 
+        grid-template-rows: minmax(280px, 1fr) auto; 
+      }
+      .main-carousel .slide-copy { 
+        border-left: 0; 
+        border-top: 1px solid var(--line); 
+        padding: 22px; 
+      }
+
+      .thumb-strip, .mini-carousel-grid, .index-grid { grid-template-columns: 1fr; }
+      
+      .thumb { 
+        grid-template-columns: 120px 1fr; 
+        grid-template-rows: auto; 
+        align-items: center; 
+      }
+      .thumb img { height: 76px; }
+    }
+
+    @media (max-width: 768px) {
+      .compact .carousel-viewport { height: auto !important; }
+      .compact .carousel-slide {
+        grid-template-columns: 1fr !important;
+        grid-template-rows: auto auto !important;
+        gap: 1.5rem !important;
+      }
+      .compact .slide-media { order: 2 !important; }
+      .compact .slide-copy { 
+        order: 1 !important;
+        padding: 0 !important; 
+        justify-content: flex-start !important;
+      }
+    }
+
+    @media (max-width: 620px) {
+      .grid-3, .grid-4, .stats { grid-template-columns: 1fr; }
+      .card, .problem { padding: 20px; }
+      h1 { font-size: 52px; }
+      .actions { flex-direction: column; }
+      .btn { width:100%; }
+      .main-carousel .carousel-viewport { min-height: 600px; }
+      .main-carousel .carousel-topline { flex-direction: column; }
+      .main-carousel .slide-media img { max-height: 300px; }
+    }
+  </style>
 </head>
 <body>
+<nav class="nav">
+<div class="nav-inner">
+<a class="brand" href="#top"><span class="brand-dot"></span><span>VLA-Trace</span></a>
+<div class="nav-links">
+<a href="#motivation">Motivation</a>
+<a href="#method">Method</a><a href="#results">Results</a>
+<a href="#findings">Findings</a>
+<a href="#implications">Outlook</a>
+<a href="#citation">Citation</a>
+</div>
+</div>
+</nav>
+<main class="wrap" id="top">
+<section class="hero">
+<div class="hero-grid">
+<div>
+<h2>VLA-Trace</h2>
+<p class="subtitle subtitle-sm">Diagnosing Vision-Language-Action Models through Representation and Behavior Tracing</p>
+<div class="paper-meta">
+  <div class="authors">
+    <a>Haoyuan Shi</a><sup>1,2,†</sup>,
+    <a>Xiancong Ren</a><sup>1,†</sup>,
+    <a>Yingji Zhang</a><sup>1,3,†</sup>,
+    <a>Qinfan Zhang</a><sup>1,4,†</sup>,
+    <a><br>Jiayu Hu</a><sup>1</sup>,
+    <a>Haozhe Shan</a><sup>1,5</sup>,
+    <a>Han Dong</a><sup>1,6</sup>,
+    <a>Jinpeng Lu</a><sup>1,2</sup>,
+    <a>Yinda Chen</a><sup>1,2</sup>,
+    <a><br>Yi Zhang</a><sup>1</sup>,
+    <a>Yong Dai</a><sup>1,‡</sup>,
+    <a>Xiaozhu Ju</a><sup>1,✉</sup>
+  </div>
+  <div class="affiliations" aria-label="Affiliations">
+    <span><sup>1</sup> X-Humanoid</span>
+    <span><sup>2</sup> University of Science and Technology of China</span>
+    <span><sup>3</sup> University of Manchester</span>
+    <span><sup>4</sup> Beihang University</span>
+    <span><sup>5</sup> Fudan University</span>
+    <span><sup>6</sup> University of New South Wales</span>
+  </div>
+  <div class="author-notes">† Core contributors · ‡ Project leader · ✉ Corresponding author</div>
+</div>
+<div class="actions">
+  <a class="btn primary"
+  href="https://arxiv.org/abs/2605.30117"
+  rel="noreferrer"
+  target="_blank">
+ <img src="img/arxiv-logo-one-color-white.svg"
+      class="btn-icon"
+      alt="arXiv">
+ Paper
+</a>
+<a class="btn"
+   href="https://github.com/VLA-Trace/VLA-Trace"
+   rel="noreferrer"
+   target="_blank">
 
-<header class="rynn-header">
-    <h1 class="title">
-        <span class="epic-wrapper">VLA-Trace</span>: Diagnosing Vision-Language-Action Models
-        <br>
-        <span>through Representation and Behavior Tracing</span>
-    </h1>
+<svg class="btn-icon github-icon" viewBox="0 0 16 16">
+<path fill="currentColor"
+d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38
+0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13
+-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66
+.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95
+0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12
+0 0 .67-.21 2.2.82a7.65 7.65 0 0 1 4 0c1.53-1.04 2.2-.82 2.2-.82
+.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15
+0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48
+0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8
+c0-4.42-3.58-8-8-8z"/>
+</svg>
 
-    <div class="button-group">
-        <a href="#" target="_blank" rel="noopener noreferrer" class="btn" style="background: #000; color: #fff; border-color: #000;">
-            <svg xmlns="#" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
-            </svg>
-            GitHub
-        </a>
+GitHub
+</a>
+<a class="btn" href="#citation">✂️ BibTeX</a>
+</div>
+<div class="stats">
+</div>
+</div>
+<div class="hero-card">
+<img alt="Overview of the VLA-Trace framework" class="zoomable" src="img/overview0526_01.png"/>
+</div>
+</div>
+</section>
+<section id="motivation">
+<div class="section-head">
+<span class="kicker">Motivation</span>
+<h2>VLA models can act — but why do they act?</h2>
+<p>Modern VLA policies inherit strong vision-language priors, but robot-policy learning can reshape those priors in non-obvious ways. VLA-Trace turns this black-box question into a stage-wise diagnosis.</p>
+</div>
 
-        <a href="#" target="_blank" rel="noopener noreferrer" class="btn" style="background: #ef4444; color: #fff; border-color: #ef4444;">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 512" width="20" height="20" fill="currentColor">
-                <path d="M181.9 256.1c-5-16-4.9-46.9-2-46.9 8.4 0 7.6 36.9 2 46.9zm-1.7 47.2c-7.7 20.2-17.3 43.3-28.4 62.7 18.3-7 39-17.2 62.9-21.9-12.7-9.6-24.9-23.4-34.5-40.8zM86.1 428.1c0 .8 13.2-5.4 34.9-40.2-6.7 6.3-29.1 24.5-34.9 40.2zM248 160h136v328c0 13.3-10.7 24-24 24H24c-13.3 0-24-10.7-24-24V24C0 10.7 10.7 0 24 0h200v136c0 13.2 10.8 24 24 24zm-8 171.8c-20-12.2-33.3-29-42.7-53.8 4.5-18.5 11.6-46.6 6.2-64.2-4.7-29.4-42.4-26.5-47.8-6.8-5 18.3-.4 44.1 8.1 77-11.6 27.6-28.7 64.6-40.8 85.8-.1 0-.1.1-.2.1-27.1 13.9-73.6 44.5-54.5 68 5.6 6.9 16 10 21.5 10 17.9 0 35.7-18 61.1-61.8 25.8-8.5 54.1-19.1 79-23.2 21.7 11.8 47.1 19.5 64 19.5 29.2 0 31.2-32 19.7-43.4-13.9-13.6-54.3-9.7-73.6-7.2zM377 105L279 7c-4.5-4.5-10.6-7-17-7h-6v128h128v-6.1c0-6.3-2.5-12.4-7-16.9zm-74.1 255.3c4.1-2.7-2.5-11.9-42.8-9 37.1 15.8 42.8 9 42.8 9z"></path>
-            </svg>
-            Paper
-        </a>
+<div class="grid-2">
+  <div class="problem">
+    <div>
+      <span class="kicker" style="color:#93c5fd">The black-box gap</span>
+      <h2 style="font-size:34px;margin:8px 0 12px;color:white;">Success rate alone cannot explain failures.</h2>
+      <p>A policy may successfully imitate trajectories while still ignoring subtle language edits, relying on gripper geometry, or exploiting background layout. VLA-Trace links internal representations to causal pathways and then to rollout behavior.</p>
     </div>
-</header>
-
-<!-- Overview -->
-<section id="overview" class="overview-section" style="margin-top: 0;">
-    <div style="
-        text-align: center;
-        font-size: 16px;
-        font-weight: 700;
-        color: #d97706;
-        margin-bottom: 40px;
-        font-family: 'Georgia', 'Times New Roman', serif;
-        letter-spacing: 0.5px;
-    ">
-        🚧 Coming Soon：The full VLA-Trace project page is under construction. Paper, code, and more details will be released soon.
+    <div class="question-list">
+      <div class="question">
+        <b>Q1 Representation 🧠</b>
+        <span>Does robot adaptation reorganize pretrained multimodal representations?</span>
+      </div>
+      <div class="question">
+        <b>Q2 Control 🔀</b>
+        <span>Which modality actually drives action generation?</span>
+      </div>
+      <div class="question">
+        <b>Q3 Behavior 🤖</b>
+        <span>Do internal pathways explain grounded behavior?</span>
+      </div>
     </div>
+  </div>
 
-    <h2 class="overview-title">Overview</h2>
-    <div style="text-align: center;">
-        <img src="img\overview0526_01.png" 
-             style="max-width: 100%; height: auto; border-radius: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);"
-             alt="Overview">
+  <div class="card">
+    <div>
+      <span class="pill">Three Questions Behind VLA Behavior</span>
+      <h3>Build an evidence chain, not an isolated probe.</h3>
+      <p>Existing analyses often stop at hidden-state probing or input perturbation. VLA-Trace connects three levels:</p>
     </div>
+    <div class="question-list evidence-list">
+      <div class="question">
+        <b>Representation Geometry</b>
+        <span>What is preserved or reorganized?</span>
+      </div>
+      <div class="question">
+        <b>Causal Attribution</b>
+        <span>What pathway is necessary for action?</span>
+      </div>
+      <div class="question">
+        <b>Behavioral Manifestation</b>
+        <span>What does the robot actually rely on?</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="callout">
+    <strong>Takeaway:</strong> High success rates reveal what VLA models do, but not how they actually work.VLA-Trace bridges this gap through representation, control, and behavior tracing.
+  </div>
+</div>
+</section>
+<section id="method">
+<div class="section-head">
+<span class="kicker">Method</span>
+<h2>A progressive evidence chain</h2>
+<p>VLA-Trace follows three model stages — C0 pretrained VLM, C1 pretrained VLA, and C2 task-finetuned VLA — and applies complementary probes from latent geometry to closed-loop rollout behavior.</p>
+</div>
+<div class="timeline">
+<div class="stage">
+<a href="#s1-block" class="step-btn">S1</a>
+<div class="card">
+<span class="pill">Representation tracing</span>
+<h3>Cross-modal &amp; checkpoint-drift CKA</h3>
+<p>Measure image–text alignment and whether visual, textual, and joint subspaces are preserved or reorganized across C0, C1, and C2.</p>
+</div>
+</div>
+<div class="stage">
+<a href="#s2-block" class="step-btn">S2</a>
+<div class="card">
+<span class="pill green">Causal tracing</span>
+<h3>Attention knockout</h3>
+<p>Block selected token pathways during prefill or generation to test whether vision, language, structural prompt tokens, or action paths are necessary.</p>
+</div>
+</div>
+<div class="stage">
+<a href="#s3-block" class="step-btn">S3</a>
+<div class="card">
+<span class="pill orange">Behavior tracing</span>
+<h3>Rollout probes</h3>
+<p>Use attention IoU, patch masking, and input editing to expose grounding, shortcut dependence, and fine-grained semantic controllability.</p>
+</div>
+</div>
+</div>
+<div class="table-wrap" style="margin-top:24px;">
+<table class="probe-table">
+<thead><tr><th>Stage</th><th>Probe</th><th>Question</th><th>Benchmarks</th><th>Models</th></tr></thead>
+<tbody>
+<tr><td><b>S1</b></td><td>Cross-modal CKA</td><td>How strongly do image and text representations align?</td><td><span class="tag">LIBERO</span><span class="tag">COCO</span></td><td><span class="tag green">π0.5</span><span class="tag green">OpenVLA</span></td></tr>
+<tr><td><b>S1</b></td><td>Checkpoint-drift CKA</td><td>Which representation subspaces are preserved or rewritten?</td><td><span class="tag">LIBERO</span></td><td><span class="tag green">π0.5</span><span class="tag green">OpenVLA</span></td></tr>
+<tr><td><b>S2</b></td><td>Attention knockout</td><td>Which modality routes are causally required?</td><td><span class="tag">LIBERO</span><span class="tag">CALVIN</span><span class="tag">RoboTwin2.0</span></td><td><span class="tag green">π0.5</span><span class="tag green">OpenVLA</span><span class="tag green">OpenVLA-OFT</span></td></tr>
+<tr><td><b>S3</b></td><td>Attention IoU</td><td>Do action-conditioned heatmaps overlap with task-relevant regions?</td><td><span class="tag">LIBERO</span></td><td><span class="tag green">π0.5</span><span class="tag green">OpenVLA</span></td></tr>
+<tr><td><b>S3</b></td><td>Patch masking &amp; input editing</td><td>Which visual cues or semantic edits actually change behavior?</td><td><span class="tag">LIBERO</span><span class="tag">CALVIN</span><span class="tag">RoboTwin2.0</span><span class="tag">SimplerEnv</span></td><td><span class="tag green">π0.5</span><span class="tag green">OpenVLA</span><span class="tag green">OpenVLA-OFT</span><span class="tag green">X-VLA</span></td></tr>
+</tbody>
+</table>
+</div>
 </section>
 
-<!-- Citation -->
-<section class="citation-box">
-    <div class="citation-card">
-        <div class="citation-title">📝 Citation</div>
-        <div class="citation-code">
-<pre>
-@misc{shi2026vlatracediagnosingvisionlanguageactionmodels,
-      title={VLA-Trace: Diagnosing Vision-Language-Action Models through Representation and Behavior Tracing}, 
-      author={Haoyuan Shi and Xiancong Ren and Yingji Zhang and Qinfan Zhang and Jiayu Hu and Haozhe Shan and Han Dong and Jinpeng Lu and Yinda Chen and Yi Zhang and Yong Dai and Xiaozhu Ju},
-      year={2026},
-      eprint={2605.30117},
-      archivePrefix={arXiv},
-      primaryClass={cs.AI},
-      url={https://arxiv.org/abs/2605.30117}, 
-}
-</pre>
+<section id="results">
+<div class="section-head">
+<span class="kicker">Results carousel</span>
+<h2>Browse the experimental evidence as slides</h2>
+<p>The paper contains many diagnostic figures, so this page now uses carousels for fast browsing. Use the arrows, dots, thumbnails, or keyboard arrow keys; click any image to zoom in.</p>
+</div>
+
+<div class="mini-carousel-grid">
+
+  <div id="s1-block" aria-label="Representation analysis carousel" class="carousel-shell compact" data-carousel="">
+    <div class="carousel-topline compact-head">
+      <div>
+        <span class="pill purple">S1</span>
+        <h3>Representation analysis</h3>
+      </div>
+      <div class="carousel-controls">
+        <button class="carousel-btn" data-prev="">‹</button>
+        <button class="carousel-btn" data-next="">›</button>
+      </div>
+    </div>
+    <div class="carousel-viewport compact-view">
+      <div class="carousel-slide active" data-slide-index="0">
+        <div class="slide-media">
+          <img class="zoomable" src="img2/s1-1.png" alt="Layer-wise image-text CKA">
         </div>
+        <div class="slide-copy">
+          <span class="slide-stage">S1 · CKA</span>
+          <h3>Cross-modal representation dynamics</h3>
+          <p>Layer-wise image–text CKA compares how vision-language alignment changes across datasets and model stages.</p>
+        </div>
+      </div>
+      <div class="carousel-slide" data-slide-index="1">
+        <div class="slide-media">
+          <img class="zoomable" src="img2/s1-2.png" alt="Checkpoint drift CKA heatmaps">
+        </div>
+        <div class="slide-copy">
+          <span class="slide-stage">S1 · Drift CKA</span>
+          <h3>Checkpoint-drift representation preservation</h3>
+          <p>Checkpoint-drift CKA shows which visual, textual, and joint subspaces are preserved or reorganized during adaptation.</p>
+        </div>
+      </div>
     </div>
+    <div class="carousel-footer">
+      <div class="carousel-dots">
+        <button class="carousel-dot active" data-dot="0"></button>
+        <button class="carousel-dot" data-dot="1"></button>
+      </div>
+      <div class="slide-counter">
+        <span data-current="">1</span> / <span data-total="">2</span>
+      </div>
+    </div>
+  </div>
+
+  <div id="s2-block" aria-label="Causal analysis carousel" class="carousel-shell compact" data-carousel="">
+    <div class="carousel-topline compact-head">
+      <div>
+        <span class="pill green">S2</span>
+        <h3>Causal analysis</h3>
+      </div>
+      <div class="carousel-controls">
+        <button class="carousel-btn" data-prev="">‹</button>
+        <button class="carousel-btn" data-next="">›</button>
+      </div>
+    </div>
+    <div class="carousel-viewport compact-view">
+      <div class="carousel-slide active" data-slide-index="0">
+        <div class="slide-media">
+          <img class="zoomable" src="img2/s2-11.png" alt="Layer-wise attention knockout results">
+        </div>
+        <div class="slide-copy">
+          <span class="slide-stage">S2 · Knockout</span>
+          <h3>All-layer attention knockout experiment</h3>
+          <p>All-layer attention knockout results across LIBERO suites. Each cell reports success rate and the absolute change relative to the suite-specific all-layer baseline in parentheses.</p>
+        </div>
+      </div>
+      <div class="carousel-slide" data-slide-index="1">
+        <div class="slide-media">
+          <img class="zoomable" src="img2/s2-1.png" alt="Layer-wise attention knockout results">
+        </div>
+        <div class="slide-copy">
+          <span class="slide-stage">S2 · Knockout</span>
+          <h3>OpenVLA-OFT LIBERO layerwise experiment</h3>
+          <p>Layer-wise knockout results for OpenVLA-OFT on LIBERO-10, Goal, Object, and Spatial under a 3-layer knockout window centered at the indicated layer.</p>
+        </div>
+      </div>
+      <div class="carousel-slide" data-slide-index="2">
+        <div class="slide-media">
+          <img class="zoomable" src="img2/s2-2.png" alt="Layer-wise attention knockout results">
+        </div>
+        <div class="slide-copy">
+          <span class="slide-stage">S2 · Knockout</span>
+          <h3>OpenVLA-OFT LIBERO layerwise experiment</h3>
+          <p>Layer-wise knockout results for OpenVLA-OFT on LIBERO-10, Goal, Object, and Spatial under a 5-layer knockout window centered at the indicated layer.</p>
+        </div>
+      </div>
+      <div class="carousel-slide" data-slide-index="3">
+        <div class="slide-media">
+          <img class="zoomable" src="img2/s2-3.png" alt="Layer-wise attention knockout results">
+        </div>
+        <div class="slide-copy">
+          <span class="slide-stage">S2 · Knockout</span>
+          <h3>OpenVLA-OFT LIBERO layerwise experiment</h3>
+          <p>Layer-wise knockout results for OpenVLA-OFT on LIBERO-10, Goal, Object, and Spatial under a 7-layer knockout window centered at the indicated layer.</p>
+        </div>
+      </div>
+      <div class="carousel-slide" data-slide-index="4">
+        <div class="slide-media">
+          <img class="zoomable" src="img2/s2-4.png" alt="Layer-wise attention knockout results">
+        </div>
+        <div class="slide-copy">
+          <span class="slide-stage">S2 · Knockout</span>
+          <h3>OpenVLA LIBERO layerwise experiment</h3>
+          <p>Layer-wise knockout results for OpenVLA on LIBERO-10, Goal, Object, and Spatial under a 3-layer knockout window centered at the indicated layer.</p>
+        </div>
+      </div>
+      <div class="carousel-slide" data-slide-index="5">
+        <div class="slide-media">
+          <img class="zoomable" src="img2/s2-5.png" alt="Layer-wise attention knockout results">
+        </div>
+        <div class="slide-copy">
+          <span class="slide-stage">S2 · Knockout</span>
+          <h3>OpenVLA LIBERO layerwise experiment</h3>
+          <p>Layer-wise knockout results for OpenVLA on LIBERO-10, Goal, Object, and Spatial under a 7-layer knockout window centered at the indicated layer.</p>
+        </div>
+      </div>
+      <div class="carousel-slide" data-slide-index="6">
+        <div class="slide-media">
+          <img class="zoomable" src="img2/s2-6.png" alt="Layer-wise attention knockout results">
+        </div>
+        <div class="slide-copy">
+          <span class="slide-stage">S2 · Knockout</span>
+          <h3>pi05 LIBERO</h3>
+          <p>Layer-wise knockout results for pi05 on LIBERO-10, Goal, Object, and Spatial under a 3-layer knockout window centered at the indicated layer.</p>
+        </div>
+      </div>
+      <div class="carousel-slide" data-slide-index="7">
+        <div class="slide-media">
+          <img class="zoomable" src="img2/s2-7.png" alt="Layer-wise attention knockout results">
+        </div>
+        <div class="slide-copy">
+          <span class="slide-stage">S2 · Knockout</span>
+          <h3>pi05 LIBERO</h3>
+          <p>Layer-wise knockout results for pi05 on LIBERO-10, Goal, Object, and Spatial under a 5-layer knockout window centered at the indicated layer.</p>
+        </div>
+      </div>
+      <div class="carousel-slide" data-slide-index="8">
+        <div class="slide-media">
+          <img class="zoomable" src="img2/s2-8.png" alt="Layer-wise attention knockout results">
+        </div>
+        <div class="slide-copy">
+          <span class="slide-stage">S2 · Knockout</span>
+          <h3>pi05 LIBERO</h3>
+          <p>Layer-wise knockout results for pi05 on LIBERO-10, Goal, Object, and Spatial under a 7-layer knockout window centered at the indicated layer.</p>
+        </div>
+      </div>
+      <div class="carousel-slide" data-slide-index="9">
+        <div class="slide-media">
+          <img class="zoomable" src="img2/s2-9.png" alt="Layer-wise attention knockout results">
+        </div>
+        <div class="slide-copy">
+          <span class="slide-stage">S2 · Knockout</span>
+          <h3>OpenVLA-OFT RoboTwin</h3>
+          <p>Layer-wise knockout results for OpenVLA-OFT on LIBERO-10, Goal, Object, and Spatial under a 1-layer knockout window centered at the indicated layer.</p>
+        </div>
+      </div>
+      <div class="carousel-slide" data-slide-index="10">
+        <div class="slide-media">
+          <img class="zoomable" src="img2/s2-10.png" alt="Layer-wise attention knockout results">
+        </div>
+        <div class="slide-copy">
+          <span class="slide-stage">S2 · Knockout</span>
+          <h3>OpenVLA-OFT RoboTwin</h3>
+          <p>Layer-wise knockout results for OpenVLA-OFT on LIBERO-10, Goal, Object, and Spatial under a 3-layer knockout window centered at the indicated layer.</p>
+        </div>
+      </div>
+    </div>
+    <div class="carousel-footer">
+      <div class="carousel-dots">
+        <button class="carousel-dot active" data-dot="0"></button>
+        <button class="carousel-dot" data-dot="1"></button>
+        <button class="carousel-dot" data-dot="2"></button>
+        <button class="carousel-dot" data-dot="3"></button>
+        <button class="carousel-dot" data-dot="4"></button>
+        <button class="carousel-dot" data-dot="5"></button>
+        <button class="carousel-dot" data-dot="6"></button>
+        <button class="carousel-dot" data-dot="7"></button>
+        <button class="carousel-dot" data-dot="8"></button>
+        <button class="carousel-dot" data-dot="9"></button>
+        <button class="carousel-dot" data-dot="10"></button>
+      </div>
+      <div class="slide-counter">
+        <span data-current="">1</span> / <span data-total="">11</span>
+      </div>
+    </div>
+  </div>
+
+  <div id="s3-block" aria-label="Behavior analysis carousel" class="carousel-shell compact" data-carousel="">
+  <div class="carousel-topline compact-head">
+    <div>
+      <span class="pill orange">S3</span>
+      <h3>Behavior analysis</h3>
+    </div>
+    <div class="carousel-controls">
+      <button class="carousel-btn" data-prev="">‹</button>
+      <button class="carousel-btn" data-next="">›</button>
+    </div>
+  </div>
+  <div class="carousel-viewport compact-view">
+
+    <!-- 第 1 个视频 -->
+    <div class="carousel-slide active" data-slide-index="0">
+      <div class="slide-media video-stack">
+        <div class="video-item">
+          <span class="video-tag success">SUCCESS</span>
+          <video controls loop muted playsinline style="width:100%;height:180px;object-fit:contain;border-radius:14px;">
+            <source src="img2/飞书20260606-170512.mp4" type="video/mp4">
+          </video>
+        </div>
+
+        <div class="video-item">
+          <span class="video-tag failure">FAILURE</span>
+          <video controls loop muted playsinline style="width:100%;height:180px;object-fit:contain;border-radius:14px;">
+            <source src="img2/飞书20260606-170501.mp4" type="video/mp4">
+          </video>
+        </div>
+
+      </div>
+      <div class="slide-copy">
+        <span class="slide-stage">S3 · Demo</span>
+        <h3>Mask Target</h3>
+        <p>LIBERO Goal: put the yellow and white mug in the microwave and close it</p>
+      </div>
+    </div>
+
+    <!-- 原来的第 0 张图 → 现在顺延为第 1 张 -->
+    <div class="carousel-slide" data-slide-index="1">
+      <div class="slide-media">
+        <img class="zoomable" src="img2/s3-1.png" alt="Attention IoU and mass over rollout phases">
+      </div>
+      <div class="slide-copy">
+        <span class="slide-stage">S3 · Attention IoU</span>
+        <h3>Attention IOU experiment</h3>
+        <p>Pi05 attention IoU and mass on LIBERO-10.</p>
+      </div>
+    </div>
+
+    <div class="carousel-slide" data-slide-index="2">
+      <div class="slide-media">
+        <img class="zoomable" src="img2/s3-2.png" alt="Patch masking ablation">
+      </div>
+      <div class="slide-copy">
+        <span class="slide-stage">S3 · Attention IOU</span>
+        <h3>Attention IOU Schematic</h3>
+        <p>Schematic illustration of attention-IoU computation.</p>
+      </div>
+    </div>
+    <div class="carousel-slide" data-slide-index="3">
+      <div class="slide-media">
+        <img class="zoomable" src="img2/s3-3.png" alt="Instruction input editing">
+      </div>
+      <div class="slide-copy">
+        <span class="slide-stage">S3 · Action to Attention</span>
+        <h3>Action-to-Image Attention</h3>
+        <p>Qualitative action-to-image attention visualizations across rollout stages in Pi05 and OpenVLA model in LIBERO environment.</p>
+      </div>
+    </div>
+    <div class="carousel-slide" data-slide-index="4">
+      <div class="slide-media">
+        <img class="zoomable" src="img2/s3-4.png" alt="">
+      </div>
+      <div class="slide-copy">
+        <span class="slide-stage">S3 · Text Attention</span>
+        <h3>Text-to-Image Attention to Pi05</h3>
+        <p>Token-wise text-to-image attention for pretrained and fine-tuned Pi05 across execution steps in LIBERO.</p>
+      </div>
+    </div>
+    <div class="carousel-slide" data-slide-index="5">
+      <div class="slide-media">
+        <img class="zoomable" src="img2/s3-5.png" alt="">
+      </div>
+      <div class="slide-copy">
+        <span class="slide-stage">S3 · Text Attention</span>
+        <h3>Text-to-Image Attention to OpenVLA</h3>
+        <p>Token-wise text-to-image attention for pretrained and fine-tuned OpenVLA across execution steps in LIBERO.</p>
+      </div>
+    </div>
+    <div class="carousel-slide" data-slide-index="6">
+      <div class="slide-media">
+        <img class="zoomable" src="img2/s3-6.jpg" alt="">
+      </div>
+      <div class="slide-copy">
+        <span class="slide-stage">S3 · Masking</span>
+        <h3>LIBERO-10 Masking Performance</h3>
+        <p>Success rates (%) across tasks and masking strategies on LIBERO-10 for π0.5, OpenVLA, OpenVLA-OFT and X-VLA. The instruction is provided in Tab. 15.</p>
+      </div>
+    </div>
+    <div class="carousel-slide" data-slide-index="7">
+      <div class="slide-media">
+        <img class="zoomable" src="img2/s3-7.jpg" alt="">
+      </div>
+      <div class="slide-copy">
+        <span class="slide-stage">S3 · Masking</span>
+        <h3>LIBERO-Object Masking Performance</h3>
+        <p>Success rates (%) across tasks and masking strategies on LIBERO-Object for π0.5, OpenVLA, OpenVLA-OFT, and X-VLA. The instruction is provided in Tab. 15.</p>
+      </div>
+    </div>
+    <div class="carousel-slide" data-slide-index="8">
+      <div class="slide-media">
+        <img class="zoomable" src="img2/s3-8.jpg" alt="">
+      </div>
+      <div class="slide-copy">
+        <span class="slide-stage">S3 · Masking</span>
+        <h3>LIBERO-Spatial Masking Performance</h3>
+        <p>Success rates (%) across tasks and masking strategies on LIBERO-Spatial for π0.5, OpenVLA, OpenVLA-OFT, and X-VLA. The instruction is provided in Tab. 15.</p>
+      </div>
+    </div>
+    <div class="carousel-slide" data-slide-index="9">
+      <div class="slide-media">
+        <img class="zoomable" src="img2/s3-9.jpg" alt="">
+      </div>
+      <div class="slide-copy">
+        <span class="slide-stage">S3 · Masking</span>
+        <h3>LIBERO-Goal Masking Performance</h3>
+        <p>Success rates (%) across tasks and masking strategies on LIBERO-Goal for π0.5, OpenVLA, OpenVLA-OFT, X-VLA. The instruction is provided in Tab. 15.</p>
+      </div>
+    </div>
+    <div class="carousel-slide" data-slide-index="10">
+      <div class="slide-media">
+        <img class="zoomable" src="img2/s3-10.jpg" alt="">
+      </div>
+      <div class="slide-copy">
+        <span class="slide-stage">S3 · Masking</span>
+        <h3>Simpler Environment Masking</h3>
+        <p>Performance of X-VLA under different masking strategies on Simpler.</p>
+      </div>
+    </div>
+    <div class="carousel-slide" data-slide-index="11">
+      <div class="slide-media">
+        <img class="zoomable" src="img2/s3-11.jpg" alt="">
+      </div>
+      <div class="slide-copy">
+        <span class="slide-stage">S3 · Grounding</span>
+        <h3>LIBERO-10 Attention Grounding</h3>
+        <p>LIBERO-10 attention grounding for gripper, robot arm, and object regions. All values are pooled over task-step samples. Gripper is the union of robot masks whose instance name contains “gripper”; Robot Arm is the union of the remaining robot masks; Object is the current subtask focus union. Full is recomputed over the full rollout using the union of both subtask focus sets.</p>
+      </div>
+    </div>
+
+  </div>
+  <div class="carousel-footer">
+    <div class="carousel-dots">
+      <button class="carousel-dot active" data-dot="0"></button>
+      <button class="carousel-dot" data-dot="1"></button>
+      <button class="carousel-dot" data-dot="2"></button>
+      <button class="carousel-dot" data-dot="3"></button>
+      <button class="carousel-dot" data-dot="4"></button>
+      <button class="carousel-dot" data-dot="5"></button>
+      <button class="carousel-dot" data-dot="6"></button>
+      <button class="carousel-dot" data-dot="7"></button>
+      <button class="carousel-dot" data-dot="8"></button>
+      <button class="carousel-dot" data-dot="9"></button>
+      <button class="carousel-dot" data-dot="10"></button>
+      <button class="carousel-dot" data-dot="11"></button>
+    </div>
+    <div class="slide-counter">
+      <span data-current="">1</span> / <span data-total="">12</span>
+    </div>
+  </div>
+</div>
+</div>
+
 </section>
 
+<section id="findings">
+<div class="section-head">
+<span class="kicker">Key findings</span>
+<h2>What VLA-Trace reveals</h2>
+<p>The main story is not simply “vision matters” or “language matters.” Different architectures preserve, route, and use multimodal information in different ways.</p>
+</div>
+<div class="findings" style="display: grid; grid-template-columns: 1fr; gap: 18px;">
+<div class="card finding"><h2>Distinct adaptation dynamics</h2><p>π0.5 and OpenVLA exhibit different modality-specific representation changes during VLA finetuning.</p></div>
+<div class="card finding"><h2>Different routing strategies</h2><p>π0.5 is dominated by a concentrated visual-to-action pathway, while OpenVLA relies more broadly on visual grounding and prompt-region access.</p></div>
+<div class="card finding"><h2>Layer dependency is not uniform</h2><p>Some dependencies concentrate in narrow bottlenecks; others are distributed across broader layer ranges. The appendix extends this with windowed sweeps.</p></div>
+<div class="card finding"><h2>Grounding is spatial and temporal</h2><p>Action attention overlaps with robot-object interaction regions and shifts across the two phases of long-horizon LIBERO-10 tasks.</p></div>
+<div class="card finding"><h2>Visual anchors are causal</h2><p>Target-object masking causes large drops, showing that attended target objects are not merely visualized but causally required for execution.</p></div>
+<div class="card finding"><h2>Shortcut dependence is model-specific</h2><p>Gripper, robot body, and background perturbations expose different architecture-specific reliance patterns.</p></div>
+<div class="card finding"><h2>Semantic control remains partial</h2><p>Edited instructions do not always redirect behavior, suggesting a gap between visual grounding and compositional language-conditioned control.</p></div>
+</div>
+</section>
+<section id="implications">
+<div class="section-head">
+<span class="kicker">Outlook</span>
+<h2>What this suggests for future VLA design</h2>
+</div>
+<div class="grid-3">
+<div class="card"><span class="pill">Representation</span><h3>Preserve semantic priors</h3><p>VLA training should balance adapting to robot control with preserving visual, language, and cross-modal semantic pathways.</p></div>
+<div class="card"><span class="pill green">Routing</span><h3>Design explicit control circuits</h3><p>Future models may benefit from routing modules or gated cross-attention that keep task-relevant visual and instruction information available to action tokens.</p></div>
+<div class="card"><span class="pill orange">Semantics</span><h3>Train for counterfactual control</h3><p>Semantic-edit objectives, object-swap interventions, and contrastive behavior supervision could make subtle instruction changes causally actionable.</p></div>
+</div>
+</section>
+<section id="citation">
+<div class="section-head">
+<span class="kicker">Citation</span>
+<h2>Citation</h2>
+<p>If you find this work useful, please cite the paper.</p>
+</div>
+<pre id="bibtex"><code>@misc{shi2026vlatracediagnosingvisionlanguageactionmodels,
+  title={VLA-Trace: Diagnosing Vision-Language-Action Models through Representation and Behavior Tracing}, 
+  author={Haoyuan Shi and Xiancong Ren and Yingji Zhang and Qinfan Zhang and Jiayu Hu and Haozhe Shan and Han Dong and Jinpeng Lu and Yinda Chen and Yi Zhang and Yong Dai and Xiaozhu Ju},
+  year={2026},
+  eprint={2605.30117},
+  archivePrefix={arXiv},
+  primaryClass={cs.AI},
+  url={https://arxiv.org/abs/2605.30117},
+}</code></pre>
+</section>
+</main>
+
+<div class="lightbox" id="lightbox" onclick="closeLightbox()">
+<span class="close">×</span>
+<img alt="Zoomed figure" id="lightbox-img" src=""/>
+</div>
+<script>
+  const lightbox = document.getElementById('lightbox');
+  const lightboxImg = document.getElementById('lightbox-img');
+
+  function bindZoomables() {
+    document.querySelectorAll('.zoomable').forEach(img => {
+      if (img.dataset.zoomBound) return;
+      img.dataset.zoomBound = 'true';
+      img.addEventListener('click', (event) => {
+        event.stopPropagation();
+        lightboxImg.src = img.src;
+        lightbox.closeLightbox;
+        lightbox.classList.add('active');
+      });
+    });
+  }
+
+  function closeLightbox() {
+    lightbox.classList.remove('active');
+    lightboxImg.src = '';
+  }
+
+  function initCarousels() {
+    document.querySelectorAll('[data-carousel]').forEach((carousel) => {
+      const slides = Array.from(carousel.querySelectorAll('.carousel-slide'));
+      const dots = Array.from(carousel.querySelectorAll('[data-dot]'));
+      const thumbs = Array.from(carousel.querySelectorAll('[data-thumb]'));
+      const current = carousel.querySelector('[data-current]');
+      const total = carousel.querySelector('[data-total]');
+      let index = 0;
+      if (total) total.textContent = slides.length;
+
+      function show(nextIndex) {
+        if (!slides.length) return;
+        index = (nextIndex + slides.length) % slides.length;
+        slides.forEach((slide, i) => slide.classList.toggle('active', i === index));
+        dots.forEach((dot, i) => dot.classList.toggle('active', i === index));
+        thumbs.forEach((thumb, i) => thumb.classList.toggle('active', i === index));
+        if (current) current.textContent = index + 1;
+      }
+
+      const prev = carousel.querySelector('[data-prev]');
+      const next = carousel.querySelector('[data-next]');
+      if (prev) prev.addEventListener('click', () => show(index - 1));
+      if (next) next.addEventListener('click', () => show(index + 1));
+      dots.forEach((dot) => dot.addEventListener('click', () => show(Number(dot.dataset.dot))));
+      thumbs.forEach((thumb) => thumb.addEventListener('click', () => show(Number(thumb.dataset.thumb))));
+
+      let startX = null;
+      carousel.addEventListener('touchstart', (e) => { startX = e.touches[0].clientX; }, { passive: true });
+      carousel.addEventListener('touchend', (e) => {
+        if (startX === null) return;
+        const diff = e.changedTouches[0].clientX - startX;
+        if (Math.abs(diff) > 45) show(index + (diff < 0 ? 1 : -1));
+        startX = null;
+      }, { passive: true });
+
+      carousel.tabIndex = 0;
+      carousel.addEventListener('keydown', (e) => {
+        if (e.key === 'ArrowLeft') show(index - 1);
+        if (e.key === 'ArrowRight') show(index + 1);
+      });
+      
+      // ====================== 新增：10 秒自动轮播 ======================
+      let autoPlay = setInterval(() => {
+        show(index + 1);
+      }, 10000); // 10000ms = 10秒
+
+      // 鼠标悬停暂停，移开继续播放
+      carousel.addEventListener('mouseenter', () => clearInterval(autoPlay));
+      carousel.addEventListener('mouseleave', () => {
+        autoPlay = setInterval(() => show(index + 1), 10000);
+      });
+      // ===============================================================
+
+      show(0);
+    });
+  }
+
+  function copyBibtex() {
+    const text = document.getElementById('bibtex').innerText;
+    navigator.clipboard.writeText(text).then(() => {
+      const btn = event.target;
+      const old = btn.innerText;
+      btn.innerText = 'Copied!';
+      setTimeout(() => btn.innerText = old, 1200);
+    });
+  }
+
+  bindZoomables();
+  initCarousels();
+</script>
 </body>
 </html>
