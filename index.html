@@ -82,7 +82,7 @@
     }
     .btn.primary { color: white; border-color: transparent; background: linear-gradient(135deg,var(--blue),var(--cyan)); }
     .hero-card {
-      background: var(--paper); border: 1px solid var(--line); border-radius: 32px; padding: 18px;
+      background: var(--paper); border: 1px solid var(--line); border-radius: 32px; padding: 0px;
       box-shadow: var(--shadow);
     }
     .hero-card img { width:100%; display:block; border-radius: 20px; border: 1px solid var(--line); background:#fff; cursor: zoom-in; }
@@ -103,7 +103,7 @@
     
     /* 🛠️ 優化：將 card 改為內容默認全部頂部靠上對齊，不再上下撐開文字 */
     .card { 
-      background: var(--paper2); border:1px solid var(--line); border-radius: var(--radius); padding: 34px; 
+      background: var(--paper2); border:1px solid var(--line); border-radius: var(--radius); padding: 15px; 
       box-shadow: 0 18px 46px rgba(15,23,42,.06); 
       display: flex; flex-direction: column; justify-content: flex-start;
     }
@@ -217,7 +217,7 @@
     .wide { grid-column: span 2; }
     .findings { counter-reset: finding; }
     .finding { position:relative; padding-left: 74px; }
-    .finding:before { counter-increment: finding; content: counter(finding); position:absolute; left:22px; top:50px; width:36px; height:36px; border-radius:14px; background:#eff6ff; color:var(--blue); display:flex; align-items:center; justify-content:center; font-weight:900; }
+    .finding:before { counter-increment: finding; content: counter(finding); position:absolute; left:22px; top:35px; width:36px; height:36px; border-radius:14px; background:#eff6ff; color:var(--blue); display:flex; align-items:center; justify-content:center; font-weight:900; }
     details { background:white; border:1px solid var(--line); border-radius: 20px; padding: 0; box-shadow: 0 14px 34px rgba(15,23,42,.05); overflow: hidden; }
     details + details { margin-top: 12px; }
     summary { cursor:pointer; list-style:none; padding: 18px 22px; font-weight:900; display:flex; justify-content:space-between; align-items:center; }
@@ -544,6 +544,119 @@
       object-fit: contain;
       display: block;
     }
+    /* 小证据链接按钮，匹配你图里的样式 */
+    .btn-small-evidence {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      padding: 4px 10px;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      background: transparent; /* 无背景 */
+      color: var(--ink);
+      font-weight: 500;
+      cursor: pointer;
+    }
+    /* 👇 只用于 Finding 1~2 / 3~4 / 5~7 大按钮，绝不影响其他 */
+    .btn-finding-large {
+      font-size: 16px !important;
+      padding: 8px 18px !important;
+      font-weight: 700 !important;
+      border-width: 1px !important;
+      white-space: nowrap !important;
+    }
+    .btn-small-evidence:hover {
+      background: var(--soft);
+    }
+    .btn-small-evidence .arrow {
+      margin-left: 2px;
+    }
+    /* S1/S2/S3 三栏导航条样式 */
+    /* S1/S2/S3 三栏导航条样式 */
+    /* S1/S2/S3 三栏导航条样式 */
+    .stage-nav {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+      margin-top: 24px;
+      margin-bottom: 32px; /* 👈 这里加了底部距离，数值越大越远 */
+    }
+    .stage-card {
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 16px;
+      background: white;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .stage-card.s1 {
+      border-color: rgba(47,85,212,.2);
+      background: rgba(47,85,212,.05);
+    }
+    .stage-card.s2 {
+      border-color: rgba(22,163,74,.2);
+      background: rgba(22,163,74,.05);
+    }
+    .stage-card.s3 {
+      border-color: rgba(249,115,22,.2);
+      background: rgba(249,115,22,.05);
+    }
+    
+    .stage-badge {
+      width: 36px;
+      height: 36px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 900;
+      font-size: 14px;
+      position: static;
+      flex-shrink: 0;
+    }
+    .stage-card.s1 .stage-badge {
+      background: rgba(47,85,212,.1);
+      color: var(--blue);
+    }
+    .stage-card.s2 .stage-badge {
+      background: rgba(22,163,74,.1);
+      color: var(--green);
+    }
+    .stage-card.s3 .stage-badge {
+      background: rgba(249,115,22,.1);
+      color: var(--orange);
+    }
+    /* 删掉原来的 .stage-content 样式，不再使用 */
+    /* 卡片高亮动画样式 */
+    /* 卡片 & 轮播容器 通用高亮样式 */
+    @keyframes highlightCard {
+      0% {
+        transform: scale(1);
+        outline: transparent solid 0px;
+        box-shadow: 0 0 0 0 rgba(47,85,212,0);
+      }
+      25% {
+        transform: scale(1.01);
+        outline: var(--blue) solid 3px; /* 蓝色外轮廓，粗细3px可自行调整 */
+        outline-offset: 2px; /* 轮廓和原边框拉开距离，更醒目 */
+        box-shadow: 0 0 0 6px rgba(47,85,212,0.25);
+      }
+      100% {
+        transform: scale(1);
+        outline: transparent solid 0px;
+        box-shadow: 0 0 0 0 rgba(47,85,212,0);
+      }
+    }
+
+    .carousel-shell.highlight,
+    .card.highlight,
+    .finding.highlight {
+      animation: highlightCard 1.5s ease-out 3;
+    }
+
+
     @media (max-width: 980px) {
       .hero-grid, .grid-2, .timeline, .figure-grid, .appendix-grid { grid-template-columns: 1fr; }
       .grid-3, .grid-4, .stats { grid-template-columns: repeat(2, minmax(0,1fr)); }
@@ -686,7 +799,7 @@ GitHub
 </div>
 </div>
 <div class="hero-card">
-<img alt="Overview of the VLA-Trace framework" class="zoomable" src="img/overview0526_01.png"/>
+<img alt="Overview of the VLA-Trace framework" class="zoomable" src="img/overview0526_01.png" style="width:100%;height:100%;object-fit:cover;display:block;border:none;border-radius:0;padding:0;margin:0;"/>
 </div>
 </div>
 </section>
@@ -762,7 +875,7 @@ GitHub
 <a href="#s2-block" class="step-btn">S2</a>
 <div class="card">
 <span class="pill green">Causal Pathways</span>
-<h3>Attention knockout</h3>
+<h3>Attention Knockout</h3>
 <p>Block selected token pathways during prefill or generation to test whether vision, language, structural prompt tokens, or action paths are necessary.</p>
 </div>
 </div>
@@ -779,11 +892,11 @@ GitHub
 <table class="probe-table">
 <thead><tr><th>Stage</th><th>Probe</th><th>Question</th><th>Benchmarks</th><th>Models</th></tr></thead>
 <tbody>
-<tr><td><b>S1</b></td><td>Cross-modal CKA</td><td>How strongly do image and text representations align?</td><td><span class="tag">LIBERO</span><span class="tag">COCO</span></td><td><span class="tag green">π0.5</span><span class="tag green">OpenVLA</span></td></tr>
-<tr><td><b>S1</b></td><td>Checkpoint-drift CKA</td><td>Which representation subspaces are preserved or rewritten?</td><td><span class="tag">LIBERO</span></td><td><span class="tag green">π0.5</span><span class="tag green">OpenVLA</span></td></tr>
-<tr><td><b>S2</b></td><td>Attention knockout</td><td>Which modality routes are causally required?</td><td><span class="tag">LIBERO</span><span class="tag">CALVIN</span><span class="tag">RoboTwin2.0</span></td><td><span class="tag green">π0.5</span><span class="tag green">OpenVLA</span><span class="tag green">OpenVLA-OFT</span></td></tr>
-<tr><td><b>S3</b></td><td>Attention IoU</td><td>Do action-conditioned heatmaps overlap with task-relevant regions?</td><td><span class="tag">LIBERO</span></td><td><span class="tag green">π0.5</span><span class="tag green">OpenVLA</span></td></tr>
-<tr><td><b>S3</b></td><td>Patch masking &amp; input editing</td><td>Which visual cues or semantic edits actually change behavior?</td><td><span class="tag">LIBERO</span><span class="tag">CALVIN</span><span class="tag">RoboTwin2.0</span><span class="tag">SimplerEnv</span></td><td><span class="tag green">π0.5</span><span class="tag green">OpenVLA</span><span class="tag green">OpenVLA-OFT</span><span class="tag green">X-VLA</span></td></tr>
+<tr><td><b>S1</b></td><td>Cross Modal CKA</td><td>How strongly do image and text representations align?</td><td><span class="tag">LIBERO</span><span class="tag">COCO</span></td><td><span class="tag green">π0.5</span><span class="tag green">OpenVLA</span></td></tr>
+<tr><td><b>S1</b></td><td>Checkpoint Drift CKA</td><td>Which representation subspaces are preserved or rewritten?</td><td><span class="tag">LIBERO</span></td><td><span class="tag green">π0.5</span><span class="tag green">OpenVLA</span></td></tr>
+<tr><td><b>S2</b></td><td>Attention Knockout</td><td>Which modality routes are causally required?</td><td><span class="tag">LIBERO</span><span class="tag">CALVIN</span><span class="tag">RoboTwin2.0</span></td><td><span class="tag green">π0.5</span><span class="tag green">OpenVLA</span><span class="tag green">OpenVLA-OFT</span></td></tr>
+<tr><td><b>S3</b></td><td>Attention IoU And Patterns</td><td>Do action-conditioned heatmaps overlap with task-relevant regions?</td><td><span class="tag">LIBERO</span></td><td><span class="tag green">π0.5</span><span class="tag green">OpenVLA</span></td></tr>
+<tr><td><b>S3</b></td><td>Visual Patch Masking &amp;  Input Editing</td><td>Which visual cues or semantic edits actually change behavior?</td><td><span class="tag">LIBERO</span><span class="tag">CALVIN</span><span class="tag">RoboTwin2.0</span><span class="tag">SimplerEnv</span></td><td><span class="tag green">π0.5</span><span class="tag green">OpenVLA</span><span class="tag green">OpenVLA-OFT</span><span class="tag green">X-VLA</span></td></tr>
 </tbody>
 </table>
 </div>
@@ -799,54 +912,64 @@ GitHub
 <div class="mini-carousel-grid">
 
   <div id="s1-block" aria-label="Representation analysis carousel" class="carousel-shell compact" data-carousel="">
-    <div class="carousel-topline compact-head">
-      <div>
-        <span class="pill purple">S1</span>
-        <h3>Representation Shifts</h3>
+      <div class="carousel-topline compact-head">
+        <div>
+          <span class="pill purple">S1</span>
+          <h3>Representation Shifts → <a href="#finding1" class="btn-small-evidence btn-finding-large" style="background:#f5f3ff; color:#7c3aed; border-color:#e5e7eb;">Finding 1~2</a></h3>
+        </div>
+        <div class="carousel-controls">
+          <button class="carousel-btn" data-prev="">‹</button>
+          <button class="carousel-btn" data-next="">›</button>
+        </div>
       </div>
-      <div class="carousel-controls">
-        <button class="carousel-btn" data-prev="">‹</button>
-        <button class="carousel-btn" data-next="">›</button>
+      <div class="carousel-viewport compact-view">
+        <div class="carousel-slide active" data-slide-index="0">
+          <div class="slide-media">
+            <img class="zoomable" src="img2/s1-1.png" alt="Layer-wise image-text CKA">
+          </div>
+          <div class="slide-copy">
+            <span class="slide-stage">S1 · CKA</span>
+            <h3>Cross-modal representation dynamics</h3>
+            <p>Figure 2: Layer-wise image–text CKA across datasets and training stages. The panels compare cross-modal alignment for π0.5 and OpenVLA. Each curve denotes one checkpoint: C0, the pretrained VLM; C1, the pretrained VLA; and C2, the task-finetuned VLA.</p>
+            
+            <div style="margin-top:20px; display:flex; gap:10px; flex-wrap:wrap;">
+              <a href="#finding1" class="btn-small-evidence" style="background:#f5f3ff; color:#7c3aed; border-color:#e5e7eb;">Back to Finding 1~2</a>
+              <a href="#findings" class="btn-small-evidence" style="background:#f5f3ff; color:#7c3aed; border-color:#e5e7eb;">All findings</a>
+            </div>
+          </div>
+        </div>
+        <div class="carousel-slide" data-slide-index="1">
+          <div class="slide-media">
+            <img class="zoomable" src="img2/s1-2.png" alt="Checkpoint drift CKA heatmaps">
+          </div>
+          <div class="slide-copy">
+            <span class="slide-stage">S1 · Drift CKA</span>
+            <h3>Checkpoint-drift representation preservation</h3>
+            <p>Figure 3: Stage-wise checkpoint-drift CKA for π0.5 and OpenVLA. Each cell reports the mean matched-layer CKA for vision, text, and joint representations.</p>
+            
+            <div style="margin-top:20px; display:flex; gap:10px; flex-wrap:wrap;">
+              <a href="#finding1" class="btn-small-evidence" style="background:#f5f3ff; color:#7c3aed; border-color:#e5e7eb;">Back to Finding 1~2</a>
+              <a href="#findings" class="btn-small-evidence" style="background:#f5f3ff; color:#7c3aed; border-color:#e5e7eb;">All findings</a>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="carousel-footer">
+        <div class="carousel-dots">
+          <button class="carousel-dot active" data-dot="0"></button>
+          <button class="carousel-dot" data-dot="1"></button>
+        </div>
+        <div class="slide-counter">
+          <span data-current="">1</span> / <span data-total="">2</span>
+        </div>
       </div>
     </div>
-    <div class="carousel-viewport compact-view">
-      <div class="carousel-slide active" data-slide-index="0">
-        <div class="slide-media">
-          <img class="zoomable" src="img2/s1-1.png" alt="Layer-wise image-text CKA">
-        </div>
-        <div class="slide-copy">
-          <span class="slide-stage">S1 · CKA</span>
-          <h3>Cross-modal representation dynamics</h3>
-          <p>Layer-wise image–text CKA compares how vision-language alignment changes across datasets and model stages.</p>
-        </div>
-      </div>
-      <div class="carousel-slide" data-slide-index="1">
-        <div class="slide-media">
-          <img class="zoomable" src="img2\s1-2.png" alt="Checkpoint drift CKA heatmaps">
-        </div>
-        <div class="slide-copy">
-          <span class="slide-stage">S1 · Drift CKA</span>
-          <h3>Checkpoint-drift representation preservation</h3>
-          <p>Checkpoint-drift CKA shows which visual, textual, and joint subspaces are preserved or reorganized during adaptation.</p>
-        </div>
-      </div>
-    </div>
-    <div class="carousel-footer">
-      <div class="carousel-dots">
-        <button class="carousel-dot active" data-dot="0"></button>
-        <button class="carousel-dot" data-dot="1"></button>
-      </div>
-      <div class="slide-counter">
-        <span data-current="">1</span> / <span data-total="">2</span>
-      </div>
-    </div>
-  </div>
 
   <div id="s2-block" aria-label="Causal analysis carousel" class="carousel-shell compact" data-carousel="">
     <div class="carousel-topline compact-head">
       <div>
         <span class="pill green">S2</span>
-        <h3>Causal Pathways</h3>
+        <h3>Causal Pathways → <a href="#finding3" class="btn-small-evidence btn-finding-large" style="background:#ecfdf5; color:#16a34a; border-color:#dcfce7;">Finding 3~4</a></h3>
       </div>
       <div class="carousel-controls">
         <button class="carousel-btn" data-prev="">‹</button>
@@ -861,7 +984,12 @@ GitHub
         <div class="slide-copy">
           <span class="slide-stage">S2 · Knockout</span>
           <h3>All-layer attention knockout experiment</h3>
-          <p>All-layer attention knockout results across LIBERO suites. Each cell reports success rate and the absolute change relative to the suite-specific all-layer baseline in parentheses.</p>
+          <p>Table 6: All-layer attention knockout results across LIBERO suites. Each cell reports success rate (%) and the absolute change relative to the suite-specific all-layer baseline in parentheses. For π0.5, Prefill blocks V–L attention; for OpenVLA, Prefill removes image access. Comb. combines the corresponding prefill intervention with the specified generation-stage intervention.</p>
+          
+          <div style="margin-top:20px; display:flex; gap:10px; flex-wrap:wrap;">
+            <a href="#finding3" class="btn-small-evidence" style="background:#ecfdf5; color:#16a34a; border-color:#dcfce7;">Back to Finding 3~4</a>
+            <a href="#findings" class="btn-small-evidence" style="background:#ecfdf5; color:#16a34a; border-color:#dcfce7;">All findings</a>
+          </div>
         </div>
       </div>
       <div class="carousel-slide" data-slide-index="1">
@@ -871,7 +999,12 @@ GitHub
         <div class="slide-copy">
           <span class="slide-stage">S2 · Knockout</span>
           <h3>OpenVLA-OFT LIBERO layerwise experiment</h3>
-          <p>Layer-wise knockout results for OpenVLA-OFT on LIBERO-10, Goal, Object, and Spatial under a 3-layer knockout window centered at the indicated layer.</p>
+          <p>Figure 11: Layer-wise knockout results for OpenVLA-OFT on LIBERO-10, Goal, Object, and Spatial. Each point reports the success rate under a 3-layer knockout window centered at the indicated layer.</p>
+          
+          <div style="margin-top:20px; display:flex; gap:10px; flex-wrap:wrap;">
+            <a href="#finding3" class="btn-small-evidence" style="background:#ecfdf5; color:#16a34a; border-color:#dcfce7;">Back to Finding 3~4</a>
+            <a href="#findings" class="btn-small-evidence" style="background:#ecfdf5; color:#16a34a; border-color:#dcfce7;">All findings</a>
+          </div>
         </div>
       </div>
       <div class="carousel-slide" data-slide-index="2">
@@ -881,7 +1014,12 @@ GitHub
         <div class="slide-copy">
           <span class="slide-stage">S2 · Knockout</span>
           <h3>OpenVLA-OFT LIBERO layerwise experiment</h3>
-          <p>Layer-wise knockout results for OpenVLA-OFT on LIBERO-10, Goal, Object, and Spatial under a 5-layer knockout window centered at the indicated layer.</p>
+          <p>Figure 12: Layer-wise knockout results for OpenVLA-OFT on LIBERO-10, Goal, Object, and Spatial. Each point reports the success rate under a 5-layer knockout window centered at the indicated layer.</p>
+          
+          <div style="margin-top:20px; display:flex; gap:10px; flex-wrap:wrap;">
+            <a href="#finding3" class="btn-small-evidence" style="background:#ecfdf5; color:#16a34a; border-color:#dcfce7;">Back to Finding 3~4</a>
+            <a href="#findings" class="btn-small-evidence" style="background:#ecfdf5; color:#16a34a; border-color:#dcfce7;">All findings</a>
+          </div>
         </div>
       </div>
       <div class="carousel-slide" data-slide-index="3">
@@ -891,7 +1029,12 @@ GitHub
         <div class="slide-copy">
           <span class="slide-stage">S2 · Knockout</span>
           <h3>OpenVLA-OFT LIBERO layerwise experiment</h3>
-          <p>Layer-wise knockout results for OpenVLA-OFT on LIBERO-10, Goal, Object, and Spatial under a 7-layer knockout window centered at the indicated layer.</p>
+          <p>Figure 13: Layer-wise knockout results for OpenVLA-OFT on LIBERO-10, Goal, Object, and Spatial. Each point reports the success rate under a 7-layer knockout window centered at the indicated layer.</p>
+          
+          <div style="margin-top:20px; display:flex; gap:10px; flex-wrap:wrap;">
+            <a href="#finding3" class="btn-small-evidence" style="background:#ecfdf5; color:#16a34a; border-color:#dcfce7;">Back to Finding 3~4</a>
+            <a href="#findings" class="btn-small-evidence" style="background:#ecfdf5; color:#16a34a; border-color:#dcfce7;">All findings</a>
+          </div>
         </div>
       </div>
       <div class="carousel-slide" data-slide-index="4">
@@ -901,7 +1044,12 @@ GitHub
         <div class="slide-copy">
           <span class="slide-stage">S2 · Knockout</span>
           <h3>OpenVLA LIBERO layerwise experiment</h3>
-          <p>Layer-wise knockout results for OpenVLA on LIBERO-10, Goal, Object, and Spatial under a 3-layer knockout window centered at the indicated layer.</p>
+          <p>Figure 9: Layer-wise knockout results for OpenVLA on LIBERO-10, Goal, Object, and Spatial. Each point reports the success rate under a 3-layer knockout window centered at the indicated layer.</p>
+          
+          <div style="margin-top:20px; display:flex; gap:10px; flex-wrap:wrap;">
+            <a href="#finding3" class="btn-small-evidence" style="background:#ecfdf5; color:#16a34a; border-color:#dcfce7;">Back to Finding 3~4</a>
+            <a href="#findings" class="btn-small-evidence" style="background:#ecfdf5; color:#16a34a; border-color:#dcfce7;">All findings</a>
+          </div>
         </div>
       </div>
       <div class="carousel-slide" data-slide-index="5">
@@ -911,7 +1059,12 @@ GitHub
         <div class="slide-copy">
           <span class="slide-stage">S2 · Knockout</span>
           <h3>OpenVLA LIBERO layerwise experiment</h3>
-          <p>Layer-wise knockout results for OpenVLA on LIBERO-10, Goal, Object, and Spatial under a 7-layer knockout window centered at the indicated layer.</p>
+          <p>Figure 10: Layer-wise knockout results for OpenVLA on LIBERO-10, Goal, Object, and Spatial. Each point reports the success rate under a 7-layer knockout window centered at the indicated layer.</p>
+          
+          <div style="margin-top:20px; display:flex; gap:10px; flex-wrap:wrap;">
+            <a href="#finding3" class="btn-small-evidence" style="background:#ecfdf5; color:#16a34a; border-color:#dcfce7;">Back to Finding 3~4</a>
+            <a href="#findings" class="btn-small-evidence" style="background:#ecfdf5; color:#16a34a; border-color:#dcfce7;">All findings</a>
+          </div>
         </div>
       </div>
       <div class="carousel-slide" data-slide-index="6">
@@ -921,7 +1074,12 @@ GitHub
         <div class="slide-copy">
           <span class="slide-stage">S2 · Knockout</span>
           <h3>pi05 LIBERO</h3>
-          <p>Layer-wise knockout results for pi05 on LIBERO-10, Goal, Object, and Spatial under a 3-layer knockout window centered at the indicated layer.</p>
+          <p>Figure 6: Layer-wise knockout results for π0.5 on LIBERO-10, Goal, Object, and Spatial. Each point reports the success rate under a 3-layer knockout window centered at the indicated layer.</p>
+          
+          <div style="margin-top:20px; display:flex; gap:10px; flex-wrap:wrap;">
+            <a href="#finding3" class="btn-small-evidence" style="background:#ecfdf5; color:#16a34a; border-color:#dcfce7;">Back to Finding 3~4</a>
+            <a href="#findings" class="btn-small-evidence" style="background:#ecfdf5; color:#16a34a; border-color:#dcfce7;">All findings</a>
+          </div>
         </div>
       </div>
       <div class="carousel-slide" data-slide-index="7">
@@ -931,7 +1089,12 @@ GitHub
         <div class="slide-copy">
           <span class="slide-stage">S2 · Knockout</span>
           <h3>pi05 LIBERO</h3>
-          <p>Layer-wise knockout results for pi05 on LIBERO-10, Goal, Object, and Spatial under a 5-layer knockout window centered at the indicated layer.</p>
+          <p>Figure 7: Layer-wise knockout results for π0.5 on LIBERO-10, Goal, Object, and Spatial. Each point reports the success rate under a 5-layer knockout window centered at the indicated layer.</p>
+          
+          <div style="margin-top:20px; display:flex; gap:10px; flex-wrap:wrap;">
+            <a href="#finding3" class="btn-small-evidence" style="background:#ecfdf5; color:#16a34a; border-color:#dcfce7;">Back to Finding 3~4</a>
+            <a href="#findings" class="btn-small-evidence" style="background:#ecfdf5; color:#16a34a; border-color:#dcfce7;">All findings</a>
+          </div>
         </div>
       </div>
       <div class="carousel-slide" data-slide-index="8">
@@ -941,7 +1104,12 @@ GitHub
         <div class="slide-copy">
           <span class="slide-stage">S2 · Knockout</span>
           <h3>pi05 LIBERO</h3>
-          <p>Layer-wise knockout results for pi05 on LIBERO-10, Goal, Object, and Spatial under a 7-layer knockout window centered at the indicated layer.</p>
+          <p>Figure 8: Layer-wise knockout results for π0.5 on LIBERO-10, Goal, Object, and Spatial. Each point reports the success rate under a 7-layer knockout window centered at the indicated layer.</p>
+          
+          <div style="margin-top:20px; display:flex; gap:10px; flex-wrap:wrap;">
+            <a href="#finding3" class="btn-small-evidence" style="background:#ecfdf5; color:#16a34a; border-color:#dcfce7;">Back to Finding 3~4</a>
+            <a href="#findings" class="btn-small-evidence" style="background:#ecfdf5; color:#16a34a; border-color:#dcfce7;">All findings</a>
+          </div>
         </div>
       </div>
       <div class="carousel-slide" data-slide-index="9">
@@ -951,7 +1119,12 @@ GitHub
         <div class="slide-copy">
           <span class="slide-stage">S2 · Knockout</span>
           <h3>OpenVLA-OFT RoboTwin</h3>
-          <p>Layer-wise knockout results for OpenVLA-OFT on LIBERO-10, Goal, Object, and Spatial under a 1-layer knockout window centered at the indicated layer.</p>
+          <p>Figure 14: Layer-wise knockout results for OpenVLA-OFT on RoboTwin tasks. Each row corresponds to one RoboTwin task, and each point reports the success rate under a 1-layer knockout window at the indicated layer.</p>
+          
+          <div style="margin-top:20px; display:flex; gap:10px; flex-wrap:wrap;">
+            <a href="#finding3" class="btn-small-evidence" style="background:#ecfdf5; color:#16a34a; border-color:#dcfce7;">Back to Finding 3~4</a>
+            <a href="#findings" class="btn-small-evidence" style="background:#ecfdf5; color:#16a34a; border-color:#dcfce7;">All findings</a>
+          </div>
         </div>
       </div>
       <div class="carousel-slide" data-slide-index="10">
@@ -961,7 +1134,12 @@ GitHub
         <div class="slide-copy">
           <span class="slide-stage">S2 · Knockout</span>
           <h3>OpenVLA-OFT RoboTwin</h3>
-          <p>Layer-wise knockout results for OpenVLA-OFT on LIBERO-10, Goal, Object, and Spatial under a 3-layer knockout window centered at the indicated layer.</p>
+          <p>Figure 15: Layer-wise knockout results for OpenVLA-OFT on RoboTwin tasks. Each row corresponds to one RoboTwin task, and each point reports the success rate under a 3-layer knockout window at the indicated layer.</p>
+          
+          <div style="margin-top:20px; display:flex; gap:10px; flex-wrap:wrap;">
+            <a href="#finding3" class="btn-small-evidence" style="background:#ecfdf5; color:#16a34a; border-color:#dcfce7;">Back to Finding 3~4</a>
+            <a href="#findings" class="btn-small-evidence" style="background:#ecfdf5; color:#16a34a; border-color:#dcfce7;">All findings</a>
+          </div>
         </div>
       </div>
     </div>
@@ -989,7 +1167,7 @@ GitHub
   <div class="carousel-topline compact-head">
     <div>
       <span class="pill orange">S3</span>
-      <h3>Behavioral Probes</h3>
+      <h3>Behavioral Probes → <a href="#finding5" class="btn-small-evidence btn-finding-large" style="background:#fff7ed; color:#f97316; border-color:#fed7aa;">Finding 5~7</a></h3>
     </div>
     <div class="carousel-controls">
       <button class="carousel-btn" data-prev="">‹</button>
@@ -998,40 +1176,19 @@ GitHub
   </div>
   <div class="carousel-viewport compact-view">
 
-    <!-- 第 1 个视频 -->
-    <!-- <div class="carousel-slide active" data-slide-index="0">
-      <div class="slide-media video-stack">
-        <div class="video-item">
-          <span class="video-tag success">SUCCESS</span>
-          <video controls loop muted playsinline style="width:100%;height:180px;object-fit:contain;border-radius:14px;">
-            <source src="img2/飞书20260606-170512.mp4" type="video/mp4">
-          </video>
-        </div>
-
-        <div class="video-item">
-          <span class="video-tag failure">FAILURE</span>
-          <video controls loop muted playsinline style="width:100%;height:180px;object-fit:contain;border-radius:14px;">
-            <source src="img2/飞书20260606-170501.mp4" type="video/mp4">
-          </video>
-        </div>
-
-      </div>
-      <div class="slide-copy">
-        <span class="slide-stage">S3 · Demo</span>
-        <h3>Mask Target</h3>
-        <p>LIBERO Goal: put the yellow and white mug in the microwave and close it</p>
-      </div>
-    </div> -->
-
-    <!-- 原来的第 0 张图 → 现在顺延为第 1 张 -->
     <div class="carousel-slide" data-slide-index="0">
       <div class="slide-media">
         <img class="zoomable" src="img2/s3-1.png" alt="Attention IoU and mass over rollout phases">
       </div>
       <div class="slide-copy">
-        <span class="slide-stage">S3 · Attention IoU</span>
+        <span class="slide-stage">S3 · Attention IoU And Patterns</span>
         <h3>Attention IOU experiment</h3>
-        <p>Pi05 attention IoU and mass on LIBERO-10.</p>
+        <p>Figure 22: OpenVLA attention IoU and mass on LIBERO-10. (a) Object IoU dynamically shifts between the first (Phase 1) and second (Phase 2) instruction subgoals. (b) Attention mass allocation over robot and object regions. These results indicate that VLA policies successfully generate visually grounded trajectories by tracking task-relevant objects over time.</p>
+        
+        <div style="margin-top:20px; display:flex; gap:10px; flex-wrap:wrap;">
+          <a href="#finding5" class="btn-small-evidence" style="background:#fff7ed; color:#f97316; border-color:#fed7aa;">Back to Finding 5~7</a>
+          <a href="#findings" class="btn-small-evidence" style="background:#fff7ed; color:#f97316; border-color:#fed7aa;">All findings</a>
+        </div>
       </div>
     </div>
 
@@ -1040,11 +1197,17 @@ GitHub
         <img class="zoomable" src="img2/s3-2.png" alt="Patch masking ablation">
       </div>
       <div class="slide-copy">
-        <span class="slide-stage">S3 · Attention IOU</span>
+        <span class="slide-stage">S3 · Attention IoU And Patterns</span>
         <h3>Attention IOU Schematic</h3>
-        <p>Schematic illustration of attention-IoU computation.</p>
+        <p>Figure 16: Schematic illustration of attention-IoU computation. We project action-conditioned attention onto the image patch grid, keep the top 10% highest-attention patches, and compute IoU against a simulator-derived target mask. The same mask is also used to compute continuous attention mass and peak-hit rate.</p>
+        
+        <div style="margin-top:20px; display:flex; gap:10px; flex-wrap:wrap;">
+          <a href="#finding5" class="btn-small-evidence" style="background:#fff7ed; color:#f97316; border-color:#fed7aa;">Back to Finding 5~7</a>
+          <a href="#findings" class="btn-small-evidence" style="background:#fff7ed; color:#f97316; border-color:#fed7aa;">All findings</a>
+        </div>
       </div>
     </div>
+
     <div class="carousel-slide" data-slide-index="2">
       <div class="slide-media">
         <img class="zoomable" src="img2/s3-3.png" alt="Instruction input editing">
@@ -1052,9 +1215,15 @@ GitHub
       <div class="slide-copy">
         <span class="slide-stage">S3 · Action to Image Attention</span>
         <h3>Action-to-Image Attention</h3>
-        <p>Qualitative action-to-image attention visualizations across rollout stages in Pi05 and OpenVLA model in LIBERO environment.</p>
+        <p>Figure 17: Qualitative action-to-image attention visualizations across rollout stages. We compare pretrained and fine-tuned π0.5 and OpenVLA models across early, middle, and final execution stages. Finetuning shifts action attention from diffuse or background-biased regions toward task-relevant robot-object interaction regions, indicating stronger visually grounded action generation during manipulation.</p>
+        
+        <div style="margin-top:20px; display:flex; gap:10px; flex-wrap:wrap;">
+          <a href="#finding5" class="btn-small-evidence" style="background:#fff7ed; color:#f97316; border-color:#fed7aa;">Back to Finding 5~7</a>
+          <a href="#findings" class="btn-small-evidence" style="background:#fff7ed; color:#f97316; border-color:#fed7aa;">All findings</a>
+        </div>
       </div>
     </div>
+
     <div class="carousel-slide" data-slide-index="3">
       <div class="slide-media">
         <img class="zoomable" src="img2/s3-4.png" alt="">
@@ -1062,9 +1231,15 @@ GitHub
       <div class="slide-copy">
         <span class="slide-stage">S3 · Text to Image Attention</span>
         <h3>Text-to-Image Attention to Pi05</h3>
-        <p>Token-wise text-to-image attention for pretrained and fine-tuned Pi05 across execution steps in LIBERO.</p>
+        <p>Figure 18: Token-wise text-to-image attention for pretrained and fine-tuned π0.5 across execution steps. Columns correspond to instruction tokens, and rows compare checkpoints. Each heatmap shows how the selected text token attends to image patches.</p>
+        
+        <div style="margin-top:20px; display:flex; gap:10px; flex-wrap:wrap;">
+          <a href="#finding5" class="btn-small-evidence" style="background:#fff7ed; color:#f97316; border-color:#fed7aa;">Back to Finding 5~7</a>
+          <a href="#findings" class="btn-small-evidence" style="background:#fff7ed; color:#f97316; border-color:#fed7aa;">All findings</a>
+        </div>
       </div>
     </div>
+
     <div class="carousel-slide" data-slide-index="4">
       <div class="slide-media">
         <img class="zoomable" src="img2/s3-5.png" alt="">
@@ -1072,9 +1247,15 @@ GitHub
       <div class="slide-copy">
         <span class="slide-stage">S3 · Text to Image Attention</span>
         <h3>Text-to-Image Attention to OpenVLA</h3>
-        <p>Token-wise text-to-image attention for pretrained and fine-tuned OpenVLA across execution steps in LIBERO.</p>
+        <p>Figure 19: Token-wise text-to-image attention for pretrained and fine-tuned OpenVLA across execution steps. Columns correspond to instruction tokens, and rows compare checkpoints. Each heatmap shows how the selected text token attends to image patches.</p>
+        
+        <div style="margin-top:20px; display:flex; gap:10px; flex-wrap:wrap;">
+          <a href="#finding5" class="btn-small-evidence" style="background:#fff7ed; color:#f97316; border-color:#fed7aa;">Back to Finding 5~7</a>
+          <a href="#findings" class="btn-small-evidence" style="background:#fff7ed; color:#f97316; border-color:#fed7aa;">All findings</a>
+        </div>
       </div>
     </div>
+
     <div class="carousel-slide" data-slide-index="5">
       <div class="slide-media">
         <img class="zoomable" src="img2/s3-6.jpg" alt="">
@@ -1082,7 +1263,12 @@ GitHub
       <div class="slide-copy">
         <span class="slide-stage">S3 · PATCH MASKING</span>
         <h3>LIBERO-10 Masking Performance</h3>
-        <p>Success rates (%) across tasks and masking strategies on LIBERO-10 for π0.5, OpenVLA, OpenVLA-OFT and X-VLA. The instruction is provided in Tab. 15.</p>
+        <p>Table 7: Success rates (%) across tasks and masking strategies on LIBERO-10 for π0.5, OpenVLA, OpenVLA-OFT and X-VLA. The instruction is provided in Tab. 15.</p>
+        
+        <div style="margin-top:20px; display:flex; gap:10px; flex-wrap:wrap;">
+          <a href="#finding5" class="btn-small-evidence" style="background:#fff7ed; color:#f97316; border-color:#fed7aa;">Back to Finding 5~7</a>
+          <a href="#findings" class="btn-small-evidence" style="background:#fff7ed; color:#f97316; border-color:#fed7aa;">All findings</a>
+        </div>
       </div>
     </div>
     <div class="carousel-slide" data-slide-index="6">
@@ -1092,7 +1278,12 @@ GitHub
       <div class="slide-copy">
         <span class="slide-stage">S3 · PATCH MASKING</span>
         <h3>LIBERO-Object Masking Performance</h3>
-        <p>Success rates (%) across tasks and masking strategies on LIBERO-Object for π0.5, OpenVLA, OpenVLA-OFT, and X-VLA. The instruction is provided in Tab. 15.</p>
+        <p>Table 8: Success rates (%) across tasks and masking strategies on LIBERO-Object for π0.5, OpenVLA, OpenVLAOFT, and X-VLA. The instruction is provided in Tab. 15.</p>
+        
+        <div style="margin-top:20px; display:flex; gap:10px; flex-wrap:wrap;">
+          <a href="#finding5" class="btn-small-evidence" style="background:#fff7ed; color:#f97316; border-color:#fed7aa;">Back to Finding 5~7</a>
+          <a href="#findings" class="btn-small-evidence" style="background:#fff7ed; color:#f97316; border-color:#fed7aa;">All findings</a>
+        </div>
       </div>
     </div>
     <div class="carousel-slide" data-slide-index="7">
@@ -1102,7 +1293,12 @@ GitHub
       <div class="slide-copy">
         <span class="slide-stage">S3 · PATCH MASKING</span>
         <h3>LIBERO-Spatial Masking Performance</h3>
-        <p>Success rates (%) across tasks and masking strategies on LIBERO-Spatial for π0.5, OpenVLA, OpenVLA-OFT, and X-VLA. The instruction is provided in Tab. 15.</p>
+        <p>Table 9: Success rates (%) across tasks and masking strategies on LIBERO-Spatial for π0.5, OpenVLA, OpenVLAOFT, and X-VLA. The instruction is provided in Tab. 15.</p>
+        
+        <div style="margin-top:20px; display:flex; gap:10px; flex-wrap:wrap;">
+          <a href="#finding5" class="btn-small-evidence" style="background:#fff7ed; color:#f97316; border-color:#fed7aa;">Back to Finding 5~7</a>
+          <a href="#findings" class="btn-small-evidence" style="background:#fff7ed; color:#f97316; border-color:#fed7aa;">All findings</a>
+        </div>
       </div>
     </div>
     <div class="carousel-slide" data-slide-index="8">
@@ -1112,7 +1308,12 @@ GitHub
       <div class="slide-copy">
         <span class="slide-stage">S3 · PATCH MASKING</span>
         <h3>LIBERO-Goal Masking Performance</h3>
-        <p>Success rates (%) across tasks and masking strategies on LIBERO-Goal for π0.5, OpenVLA, OpenVLA-OFT, X-VLA. The instruction is provided in Tab. 15.</p>
+        <p>Table 10: Success rates (%) across tasks and masking strategies on LIBERO-Goal for π0.5, OpenVLA, OpenVLAOFT, X-VLA. The instruction is provided in Tab. 15.</p>
+        
+        <div style="margin-top:20px; display:flex; gap:10px; flex-wrap:wrap;">
+          <a href="#finding5" class="btn-small-evidence" style="background:#fff7ed; color:#f97316; border-color:#fed7aa;">Back to Finding 5~7</a>
+          <a href="#findings" class="btn-small-evidence" style="background:#fff7ed; color:#f97316; border-color:#fed7aa;">All findings</a>
+        </div>
       </div>
     </div>
     <div class="carousel-slide" data-slide-index="9">
@@ -1122,7 +1323,12 @@ GitHub
       <div class="slide-copy">
         <span class="slide-stage">S3 · PATCH MASKING</span>
         <h3>Simpler Environment Masking</h3>
-        <p>Performance of X-VLA under different masking strategies on Simpler.</p>
+        <p>Table 11: Performance of X-VLA under different masking strategies on Simpler.</p>
+        
+        <div style="margin-top:20px; display:flex; gap:10px; flex-wrap:wrap;">
+          <a href="#finding5" class="btn-small-evidence" style="background:#fff7ed; color:#f97316; border-color:#fed7aa;">Back to Finding 5~7</a>
+          <a href="#findings" class="btn-small-evidence" style="background:#fff7ed; color:#f97316; border-color:#fed7aa;">All findings</a>
+        </div>
       </div>
     </div>
     <div class="carousel-slide" data-slide-index="10">
@@ -1132,7 +1338,12 @@ GitHub
       <div class="slide-copy">
         <span class="slide-stage">S3 · Grounding</span>
         <h3>LIBERO-10 Attention Grounding</h3>
-        <p>LIBERO-10 attention grounding for gripper, robot arm, and object regions. All values are pooled over task-step samples. Gripper is the union of robot masks whose instance name contains “gripper”; Robot Arm is the union of the remaining robot masks; Object is the current subtask focus union. Full is recomputed over the full rollout using the union of both subtask focus sets.</p>
+        <p>Table 13: LIBERO-10 attention grounding for gripper, robot arm, and object regions. All values are pooled over task-step samples. Gripper is the union of robot masks whose instance name contains “gripper”; Robot Arm is the union of the remaining robot masks; Object is the current subtask focus union. Full is recomputed over the full rollout using the union of both subtask focus sets.</p>
+        
+        <div style="margin-top:20px; display:flex; gap:10px; flex-wrap:wrap;">
+          <a href="#finding5" class="btn-small-evidence" style="background:#fff7ed; color:#f97316; border-color:#fed7aa;">Back to Finding 5~7</a>
+          <a href="#findings" class="btn-small-evidence" style="background:#fff7ed; color:#f97316; border-color:#fed7aa;">All findings</a>
+        </div>
       </div>
     </div>
     <div class="carousel-slide" data-slide-index="11">
@@ -1142,14 +1353,18 @@ GitHub
       <div class="slide-copy">
         <span class="slide-stage">S3 · INPUT EDITING</span>
         <h3>LIBERO-10 Text Editing</h3>
-        <p>Success rates (%) of text editing strategies on LIBERO-10 for π0.5. The model excels at vision-driven trajectory imitation but performs poorly when receiving subtle compositional semantics for control correction.</p>
+        <p>Table 5: Success rate (%) comparison between original and edited prompts.</p>
+        
+        <div style="margin-top:20px; display:flex; gap:10px; flex-wrap:wrap;">
+          <a href="#finding5" class="btn-small-evidence" style="background:#fff7ed; color:#f97316; border-color:#fed7aa;">Back to Finding 5~7</a>
+          <a href="#findings" class="btn-small-evidence" style="background:#fff7ed; color:#f97316; border-color:#fed7aa;">All findings</a>
+        </div>
       </div>
     </div>
 
   </div>
   <div class="carousel-footer">
     <div class="carousel-dots">
-      <!-- <button class="carousel-dot active" data-dot="0"></button> -->
       <button class="carousel-dot" data-dot="0"></button>
       <button class="carousel-dot" data-dot="1"></button>
       <button class="carousel-dot" data-dot="2"></button>
@@ -1161,7 +1376,7 @@ GitHub
       <button class="carousel-dot" data-dot="8"></button>
       <button class="carousel-dot" data-dot="9"></button>
       <button class="carousel-dot" data-dot="10"></button>
-      <button class="carousel-dot" data-dot="10"></button>
+      <button class="carousel-dot" data-dot="11"></button>
     </div>
     <div class="slide-counter">
       <span data-current="">1</span> / <span data-total="">12</span>
@@ -1169,7 +1384,6 @@ GitHub
   </div>
 </div>
 </div>
-
 </section>
 
 <section id="findings">
@@ -1178,14 +1392,101 @@ GitHub
 <h2>What VLA-Trace reveals</h2>
 <p>Our experimental findings suggest that the conclusion is not simply that “vision matters” or “language matters.” Instead, different VLA architectures preserve, route, and use multimodal information in distinct ways.</p>
 </div>
-<div class="findings" style="display: grid; grid-template-columns: 1fr; gap: 18px;">
-<div class="card finding"><h2>Distinct adaptation dynamics</h2><p>π0.5 and OpenVLA exhibit different modality-specific representation changes during VLA finetuning.</p></div>
-<div class="card finding"><h2>Different routing strategies</h2><p>π0.5 is dominated by a concentrated visual-to-action pathway, while OpenVLA relies more broadly on visual grounding and prompt-region access.</p></div>
-<div class="card finding"><h2>Layer dependency is not uniform</h2><p>Some dependencies concentrate in narrow bottlenecks; others are distributed across broader layer ranges. The appendix extends this with windowed sweeps.</p></div>
-<div class="card finding"><h2>Grounding is spatial and temporal</h2><p>Action attention overlaps with robot-object interaction regions and shifts across the two phases of long-horizon LIBERO-10 tasks.</p></div>
-<div class="card finding"><h2>Visual anchors are causal</h2><p>Target-object masking causes large drops, showing that attended target objects are not merely visualized but causally required for execution.</p></div>
-<div class="card finding"><h2>Shortcut dependence is model-specific</h2><p>Gripper, robot body, and background perturbations expose different architecture-specific reliance patterns.</p></div>
-<div class="card finding"><h2>Semantic control remains partial</h2><p>Edited instructions do not always redirect behavior, suggesting a gap between visual grounding and compositional language-conditioned control.</p></div>
+<div class="stage-nav">
+  <div class="stage-card s1" style="height: 35px; padding: 0 18px; display: flex; align-items: center; justify-content: flex-start; gap: 12px;">
+    <div class="stage-badge" style="flex-shrink: 0;">S1</div>
+    <h4 style="margin:0; padding:0; font-size:16px; font-weight:800; color:var(--ink); line-height: 1.2; display: flex; align-items: center; justify-content: center; flex-grow: 1; height: 100%; text-align: center;">Representation trace</h4>
+  </div>
+
+  <div class="stage-card s2" style="height: 35px; padding: 0 18px; display: flex; align-items: center; justify-content: flex-start; gap: 12px;">
+    <div class="stage-badge" style="flex-shrink: 0;">S2</div>
+    <h4 style="margin:0; padding:0; font-size:16px; font-weight:800; color:var(--ink); line-height: 1.2; display: flex; align-items: center; justify-content: center; flex-grow: 1; height: 100%; text-align: center;">Causal pathway trace</h4>
+  </div>
+
+  <div class="stage-card s3" style="height: 35px; padding: 0 18px; display: flex; align-items: center; justify-content: flex-start; gap: 12px;">
+    <div class="stage-badge" style="flex-shrink: 0;">S3</div>
+    <h4 style="margin:0; padding:0; font-size:16px; font-weight:800; color:var(--ink); line-height: 1.2; display: flex; align-items: center; justify-content: center; flex-grow: 1; height: 100%; text-align: center;">Behavior trace</h4>
+  </div>
+</div>
+<div class="findings grid-2" style="gap: 18px;">
+
+  <div class="card finding" id="finding1">
+    <h3 style="font-size: 24px;">Distinct adaptation dynamics</h3>
+    <p>π0.5 and OpenVLA exhibit different modality-specific representation changes during VLA finetuning.</p>
+    <div style="margin-top:16px;">
+      <a href="#s1-block" style="display:inline-flex; align-items:center; gap:6px; font-size:13px; padding:4px 11px; border-radius:999px; border:1px solid #cbd5e1; background:transparent; color:#0f172a; font-weight:600; text-decoration:none;">
+        View S1 evidence <span style="margin-left:2px;">↗</span>
+      </a>
+    </div>
+    <p style="font-size:12px; color:var(--muted); margin:8px 0 0;">Related evidence: S1 · CKA.</p>
+  </div>
+
+  <div class="card finding" id="finding2">
+    <h2 style="font-size: 24px;">Different routing strategies</h2>
+    <p>π0.5 is dominated by a concentrated visual-to-action pathway, while OpenVLA relies more broadly on visual grounding and prompt-region access.</p>
+    <div style="margin-top:16px;">
+      <a href="#s1-block" style="display:inline-flex; align-items:center; gap:6px; font-size:13px; padding:4px 11px; border-radius:999px; border:1px solid #cbd5e1; background:transparent; color:#0f172a; font-weight:600; text-decoration:none;">
+        View S1 evidence <span style="margin-left:2px;">↗</span>
+      </a>
+    </div>
+    <p style="font-size:12px; color:var(--muted); margin:8px 0 0;">Related evidence: S1 · Drift CKA.</p>
+  </div>
+
+  <div class="card finding" id="finding3">
+    <h2 style="font-size: 24px;">Layer dependency is not uniform</h2>
+    <p>Some dependencies concentrate in narrow bottlenecks; others are distributed across broader layer ranges. The appendix extends this with windowed sweeps.</p>
+    <div style="margin-top:16px;">
+      <a href="#s2-block" style="display:inline-flex; align-items:center; gap:6px; font-size:13px; padding:4px 11px; border-radius:999px; border:1px solid #cbd5e1; background:transparent; color:#0f172a; font-weight:600; text-decoration:none;">
+        View S2 evidence <span style="margin-left:2px;">↗</span>
+      </a>
+    </div>
+    <p style="font-size:12px; color:var(--muted); margin:8px 0 0;">Related evidence: S2 · Knockout.</p>
+  </div>
+
+  <div class="card finding" id="finding4">
+    <h2 style="font-size: 24px;">Grounding is spatial and temporal</h2>
+    <p>Action attention overlaps with robot-object interaction regions and shifts across the two phases of long-horizon LIBERO-10 tasks.</p>
+    <div style="margin-top:16px;">
+      <a href="#s2-block" style="display:inline-flex; align-items:center; gap:6px; font-size:13px; padding:4px 11px; border-radius:999px; border:1px solid #cbd5e1; background:transparent; color:#0f172a; font-weight:600; text-decoration:none;">
+        View S2 evidence <span style="margin-left:2px;">↗</span>
+      </a>
+    </div>
+    <p style="font-size:12px; color:var(--muted); margin:8px 0 0;">Related evidence: S2 · Knockout.</p>
+  </div>
+
+  <div class="card finding" id="finding5">
+    <h2 style="font-size: 24px;">Visual anchors are causal</h2>
+    <p>Target-object masking causes large drops, showing that attended target objects are not merely visualized but causally required for execution.</p>
+    <div style="margin-top:16px; display:flex; gap:8px; flex-wrap:wrap;">
+      <a href="#s3-block" style="display:inline-flex; align-items:center; gap:6px; font-size:13px; padding:4px 11px; border-radius:999px; border:1px solid #cbd5e1; background:transparent; color:#0f172a; font-weight:600; text-decoration:none;">
+        View S3 + table <span style="margin-left:2px;">↗</span>
+      </a>
+    </div>
+    <p style="font-size:12px; color:var(--muted); margin:8px 0 0;">Related evidence: S3 · Visual Masking.</p>
+  </div>
+
+  <div class="card finding" id="finding6">
+    <h2 style="font-size: 24px;">Shortcut dependence is model-specific</h2>
+    <p>Gripper, robot body, and background perturbations expose different architecture-specific reliance patterns.</p>
+    <div style="margin-top:16px; display:flex; gap:8px; flex-wrap:wrap;">
+      <a href="#s3-block" style="display:inline-flex; align-items:center; gap:6px; font-size:13px; padding:4px 11px; border-radius:999px; border:1px solid #cbd5e1; background:transparent; color:#0f172a; font-weight:600; text-decoration:none;">
+        View S3 + table <span style="margin-left:2px;">↗</span>
+      </a>
+    </div>
+    <p style="font-size:12px; color:var(--muted); margin:8px 0 0;">Related evidence: S3 · Shortcut Probes.</p>
+  </div>
+
+  <div class="card finding" id="finding7">
+    <h2 style="font-size: 24px;">Semantic control remains partial</h2>
+    <p>Edited instructions do not always redirect behavior, suggesting a gap between visual grounding and compositional language-conditioned control.</p>
+    <div style="margin-top:16px; display:flex; gap:8px; flex-wrap:wrap;">
+      <a href="#s3-block" style="display:inline-flex; align-items:center; gap:6px; font-size:13px; padding:4px 11px; border-radius:999px; border:1px solid #cbd5e1; background:transparent; color:#0f172a; font-weight:600; text-decoration:none;">
+        View S3 + table <span style="margin-left:2px;">↗</span>
+      </a>
+    </div>
+    <p style="font-size:12px; color:var(--muted); margin:8px 0 0;">Related evidence: S3 · Input Editing.</p>
+  </div>
+
 </div>
 </section>
 <section id="implications">
@@ -1284,18 +1585,6 @@ GitHub
         if (e.key === 'ArrowRight') show(index + 1);
       });
       
-      // ====================== 新增：10 秒自动轮播 ======================
-      // let autoPlay = setInterval(() => {
-      //   show(index + 1);
-      // }, 10000); // 10000ms = 10秒
-
-      // // 鼠标悬停暂停，移开继续播放
-      // carousel.addEventListener('mouseenter', () => clearInterval(autoPlay));
-      // carousel.addEventListener('mouseleave', () => {
-      //   autoPlay = setInterval(() => show(index + 1), 10000);
-      // });
-      // ===============================================================
-
       show(0);
     });
   }
@@ -1309,6 +1598,41 @@ GitHub
       setTimeout(() => btn.innerText = old, 1200);
     });
   }
+
+  // 跳转并高亮卡片
+  // 跳转并高亮（区分 finding 卡片 / 轮播容器，10秒自动消失）
+  function scrollToAndHighlight(id) {
+    const target = document.querySelector(id);
+    if (!target) return;
+
+    // 1. 清除页面所有已存在的高亮
+    document.querySelectorAll('.highlight').forEach(el => {
+      el.classList.remove('highlight');
+    });
+
+    // 2. 平滑滚动到目标
+    target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+    // 3. 添加高亮
+    target.classList.add('highlight');
+
+    // 4. 10秒后移除高亮
+    setTimeout(() => {
+      target.classList.remove('highlight');
+    }, 10000);
+  }
+
+  // 绑定所有锚点跳转链接
+  document.querySelectorAll('a[href^="#"]').forEach(link => {
+    link.addEventListener('click', function(e) {
+      const href = this.getAttribute('href');
+      // 只处理本页锚点
+      if (href.startsWith('#') && href.length > 1) {
+        e.preventDefault();
+        scrollToAndHighlight(href);
+      }
+    });
+  });
 
   bindZoomables();
   initCarousels();
