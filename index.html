@@ -791,7 +791,7 @@ GitHub
     <div class="carousel-topline compact-head">
       <div>
         <span class="pill purple">S1</span>
-        <h3>Representation analysis</h3>
+        <h3>Representation Shifts</h3>
       </div>
       <div class="carousel-controls">
         <button class="carousel-btn" data-prev="">‹</button>
@@ -835,7 +835,7 @@ GitHub
     <div class="carousel-topline compact-head">
       <div>
         <span class="pill green">S2</span>
-        <h3>Causal analysis</h3>
+        <h3>Causal Pathways</h3>
       </div>
       <div class="carousel-controls">
         <button class="carousel-btn" data-prev="">‹</button>
@@ -978,7 +978,7 @@ GitHub
   <div class="carousel-topline compact-head">
     <div>
       <span class="pill orange">S3</span>
-      <h3>Behavior analysis</h3>
+      <h3>Behavioral Probes</h3>
     </div>
     <div class="carousel-controls">
       <button class="carousel-btn" data-prev="">‹</button>
@@ -1263,15 +1263,15 @@ GitHub
       });
       
       // ====================== 新增：10 秒自动轮播 ======================
-      let autoPlay = setInterval(() => {
-        show(index + 1);
-      }, 10000); // 10000ms = 10秒
+      // let autoPlay = setInterval(() => {
+      //   show(index + 1);
+      // }, 10000); // 10000ms = 10秒
 
-      // 鼠标悬停暂停，移开继续播放
-      carousel.addEventListener('mouseenter', () => clearInterval(autoPlay));
-      carousel.addEventListener('mouseleave', () => {
-        autoPlay = setInterval(() => show(index + 1), 10000);
-      });
+      // // 鼠标悬停暂停，移开继续播放
+      // carousel.addEventListener('mouseenter', () => clearInterval(autoPlay));
+      // carousel.addEventListener('mouseleave', () => {
+      //   autoPlay = setInterval(() => show(index + 1), 10000);
+      // });
       // ===============================================================
 
       show(0);
