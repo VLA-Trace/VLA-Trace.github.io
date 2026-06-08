@@ -5,6 +5,7 @@
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
 <title>VLA-Trace | Diagnosing Vision-Language-Action Models</title>
+<link rel="icon" type="image/jpeg" sizes="36x36" href="img/20260608-133005.jpg">
 <meta content="VLA-Trace is a diagnostic framework for tracing representation dynamics, causal control pathways, and behavioral manifestations in Vision-Language-Action models." name="description"/>
 <style>
     :root {
@@ -536,6 +537,13 @@
         width:100% !important;
         max-height:500px;
     }
+    /* 限制导航栏品牌 Logo 尺寸 */
+    .brand-logo {
+      height: 40px;    /* 控制高度，按需微调 24~32px */
+      width: auto;     /* 宽度自适应，保证不变形 */
+      object-fit: contain;
+      display: block;
+    }
     @media (max-width: 980px) {
       .hero-grid, .grid-2, .timeline, .figure-grid, .appendix-grid { grid-template-columns: 1fr; }
       .grid-3, .grid-4, .stats { grid-template-columns: repeat(2, minmax(0,1fr)); }
@@ -597,7 +605,10 @@
 <body>
 <nav class="nav">
 <div class="nav-inner">
-<a class="brand" href="#top"><span class="brand-dot"></span><span>VLA-Trace</span></a>
+  <a class="brand" href="#top">
+    <img src="img/20260608-132943.jpg" class="brand-logo" alt="logo">
+    <span>VLA-Trace</span>
+  </a>
 <div class="nav-links">
 <a href="#motivation">Motivation</a>
 <a href="#method">Method</a><a href="#results">Results</a>
