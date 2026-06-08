@@ -999,7 +999,7 @@ GitHub
   <div class="carousel-viewport compact-view">
 
     <!-- 第 1 个视频 -->
-    <div class="carousel-slide active" data-slide-index="0">
+    <!-- <div class="carousel-slide active" data-slide-index="0">
       <div class="slide-media video-stack">
         <div class="video-item">
           <span class="video-tag success">SUCCESS</span>
@@ -1021,10 +1021,10 @@ GitHub
         <h3>Mask Target</h3>
         <p>LIBERO Goal: put the yellow and white mug in the microwave and close it</p>
       </div>
-    </div>
+    </div> -->
 
     <!-- 原来的第 0 张图 → 现在顺延为第 1 张 -->
-    <div class="carousel-slide" data-slide-index="1">
+    <div class="carousel-slide" data-slide-index="0">
       <div class="slide-media">
         <img class="zoomable" src="img2/s3-1.png" alt="Attention IoU and mass over rollout phases">
       </div>
@@ -1035,7 +1035,7 @@ GitHub
       </div>
     </div>
 
-    <div class="carousel-slide" data-slide-index="2">
+    <div class="carousel-slide" data-slide-index="1">
       <div class="slide-media">
         <img class="zoomable" src="img2/s3-2.png" alt="Patch masking ablation">
       </div>
@@ -1045,7 +1045,7 @@ GitHub
         <p>Schematic illustration of attention-IoU computation.</p>
       </div>
     </div>
-    <div class="carousel-slide" data-slide-index="3">
+    <div class="carousel-slide" data-slide-index="2">
       <div class="slide-media">
         <img class="zoomable" src="img2/s3-3.png" alt="Instruction input editing">
       </div>
@@ -1055,7 +1055,7 @@ GitHub
         <p>Qualitative action-to-image attention visualizations across rollout stages in Pi05 and OpenVLA model in LIBERO environment.</p>
       </div>
     </div>
-    <div class="carousel-slide" data-slide-index="4">
+    <div class="carousel-slide" data-slide-index="3">
       <div class="slide-media">
         <img class="zoomable" src="img2/s3-4.png" alt="">
       </div>
@@ -1065,7 +1065,7 @@ GitHub
         <p>Token-wise text-to-image attention for pretrained and fine-tuned Pi05 across execution steps in LIBERO.</p>
       </div>
     </div>
-    <div class="carousel-slide" data-slide-index="5">
+    <div class="carousel-slide" data-slide-index="4">
       <div class="slide-media">
         <img class="zoomable" src="img2/s3-5.png" alt="">
       </div>
@@ -1075,7 +1075,7 @@ GitHub
         <p>Token-wise text-to-image attention for pretrained and fine-tuned OpenVLA across execution steps in LIBERO.</p>
       </div>
     </div>
-    <div class="carousel-slide" data-slide-index="6">
+    <div class="carousel-slide" data-slide-index="5">
       <div class="slide-media">
         <img class="zoomable" src="img2/s3-6.jpg" alt="">
       </div>
@@ -1085,7 +1085,7 @@ GitHub
         <p>Success rates (%) across tasks and masking strategies on LIBERO-10 for π0.5, OpenVLA, OpenVLA-OFT and X-VLA. The instruction is provided in Tab. 15.</p>
       </div>
     </div>
-    <div class="carousel-slide" data-slide-index="7">
+    <div class="carousel-slide" data-slide-index="6">
       <div class="slide-media">
         <img class="zoomable" src="img2/s3-7.jpg" alt="">
       </div>
@@ -1095,7 +1095,7 @@ GitHub
         <p>Success rates (%) across tasks and masking strategies on LIBERO-Object for π0.5, OpenVLA, OpenVLA-OFT, and X-VLA. The instruction is provided in Tab. 15.</p>
       </div>
     </div>
-    <div class="carousel-slide" data-slide-index="8">
+    <div class="carousel-slide" data-slide-index="7">
       <div class="slide-media">
         <img class="zoomable" src="img2/s3-8.jpg" alt="">
       </div>
@@ -1105,7 +1105,7 @@ GitHub
         <p>Success rates (%) across tasks and masking strategies on LIBERO-Spatial for π0.5, OpenVLA, OpenVLA-OFT, and X-VLA. The instruction is provided in Tab. 15.</p>
       </div>
     </div>
-    <div class="carousel-slide" data-slide-index="9">
+    <div class="carousel-slide" data-slide-index="8">
       <div class="slide-media">
         <img class="zoomable" src="img2/s3-9.jpg" alt="">
       </div>
@@ -1115,7 +1115,7 @@ GitHub
         <p>Success rates (%) across tasks and masking strategies on LIBERO-Goal for π0.5, OpenVLA, OpenVLA-OFT, X-VLA. The instruction is provided in Tab. 15.</p>
       </div>
     </div>
-    <div class="carousel-slide" data-slide-index="10">
+    <div class="carousel-slide" data-slide-index="9">
       <div class="slide-media">
         <img class="zoomable" src="img2/s3-10.jpg" alt="">
       </div>
@@ -1125,7 +1125,7 @@ GitHub
         <p>Performance of X-VLA under different masking strategies on Simpler.</p>
       </div>
     </div>
-    <div class="carousel-slide" data-slide-index="11">
+    <div class="carousel-slide" data-slide-index="10">
       <div class="slide-media">
         <img class="zoomable" src="img2/s3-11.jpg" alt="">
       </div>
@@ -1135,11 +1135,22 @@ GitHub
         <p>LIBERO-10 attention grounding for gripper, robot arm, and object regions. All values are pooled over task-step samples. Gripper is the union of robot masks whose instance name contains “gripper”; Robot Arm is the union of the remaining robot masks; Object is the current subtask focus union. Full is recomputed over the full rollout using the union of both subtask focus sets.</p>
       </div>
     </div>
+    <div class="carousel-slide" data-slide-index="11">
+      <div class="slide-media">
+        <img class="zoomable" src="img2/s3-12.jpg" alt="">
+      </div>
+      <div class="slide-copy">
+        <span class="slide-stage">S3 · Text Editing</span>
+        <h3>LIBERO-10 Text Editing</h3>
+        <p>Success rates (%) of text editing strategies on LIBERO-10 for π0.5. The model excels at vision-driven trajectory imitation but performs poorly when receiving subtle compositional semantics for control correction.</p>
+      </div>
+    </div>
 
   </div>
   <div class="carousel-footer">
     <div class="carousel-dots">
-      <button class="carousel-dot active" data-dot="0"></button>
+      <!-- <button class="carousel-dot active" data-dot="0"></button> -->
+      <button class="carousel-dot" data-dot="0"></button>
       <button class="carousel-dot" data-dot="1"></button>
       <button class="carousel-dot" data-dot="2"></button>
       <button class="carousel-dot" data-dot="3"></button>
@@ -1150,7 +1161,7 @@ GitHub
       <button class="carousel-dot" data-dot="8"></button>
       <button class="carousel-dot" data-dot="9"></button>
       <button class="carousel-dot" data-dot="10"></button>
-      <button class="carousel-dot" data-dot="11"></button>
+      <button class="carousel-dot" data-dot="10"></button>
     </div>
     <div class="slide-counter">
       <span data-current="">1</span> / <span data-total="">12</span>
