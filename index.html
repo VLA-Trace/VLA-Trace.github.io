@@ -1,728 +1,235 @@
 <!DOCTYPE html>
-
 <html lang="en">
 <head>
-<meta charset="utf-8"/>
-<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
 <title>VLA-Trace | Diagnosing Vision-Language-Action Models</title>
-<link rel="icon" type="image/jpeg" sizes="36x36" href="img\20260608-132943.jpg">
-<meta content="VLA-Trace is a diagnostic framework for tracing representation dynamics, causal control pathways, and behavioral manifestations in Vision-Language-Action models." name="description"/>
-<style>
-    :root {
-      --bg: #f7faff;
-      --paper: rgba(255,255,255,.92);
-      --paper2: #ffffff;
-      --ink: #0f172a;
-      --muted: #5b6477;
-      --soft: #e8eefc;
-      --line: #dbe4f4;
-      --blue: #2f55d4;
-      --blue2: #6b7cff;
-      --cyan: #0ea5b7;
-      --orange: #f97316;
-      --green: #16a34a;
-      --purple: #7c3aed;
-      --red: #ef4444;
-      --shadow: 0 24px 70px rgba(15, 23, 42, .11);
-      --radius: 24px;
-      --max: 1360px;
-    }
-    * { box-sizing: border-box; }
-    html { scroll-behavior: smooth; }
-    body {
-      margin: 0;
-      color: var(--ink);
-      background:
-        radial-gradient(circle at top left, rgba(47,85,212,.16), transparent 34vw),
-        radial-gradient(circle at 85% 6%, rgba(14,165,183,.15), transparent 30vw),
-        linear-gradient(180deg, #fbfdff 0%, var(--bg) 40%, #fff 100%);
-      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-    }
-    a { color: inherit; text-decoration: none; }
-    .nav {
-      position: sticky; top: 0; z-index: 50;
-      backdrop-filter: blur(18px);
-      background: rgba(248,251,255,.82);
-      border-bottom: 1px solid rgba(219,228,244,.85);
-    }
-    .nav-inner {
-      max-width: var(--max); margin: 0 auto; padding: 14px 20px;
-      display: flex; justify-content: space-between; align-items: center; gap: 14px;
-    }
-    .brand { display:flex; align-items:center; gap:10px; font-weight: 900; letter-spacing: -.02em; }
-    .brand-dot { width: 34px; height: 34px; border-radius: 12px; background: linear-gradient(135deg,var(--blue),var(--cyan)); box-shadow: 0 12px 30px rgba(47,85,212,.28); }
-    .nav-links { display:flex; gap:18px; align-items:center; color: #000 !important; font-size:14px; font-weight:700; }
-    .nav-links a:hover { color: var(--blue); }
-    .wrap { max-width: var(--max); margin: 0 auto; padding: 0 20px; }
-    .hero { padding: 72px 0 44px; }
-    .hero-grid { display:grid; grid-template-columns: 0.85fr 1.15fr; gap: 38px; align-items:center; }
-    .eyebrow {
-      display:inline-flex; gap:8px; align-items:center;
-      padding: 8px 12px; border: 1px solid var(--line); border-radius:999px;
-      background: rgba(255,255,255,.78); color: var(--blue); font-weight: 800; font-size: 13px;
-    }
-    h1 { margin: 20px 0 12px; font-size: clamp(46px, 7vw, 86px); line-height: .92; letter-spacing: -.06em; }
-    .subtitle { margin: 0; font-size: clamp(19px, 2.6vw, 29px); line-height: 1.23; color: #1e293b; font-weight: 800; letter-spacing: -.035em; }
-    .lead { margin: 20px 0 0; font-size: 18px; line-height: 1.72; color: var(--muted); max-width: 720px; }
-    .actions { display:flex; gap:12px; flex-wrap:wrap; margin-top: 28px; }
-    .btn {
-      display:inline-flex; align-items:center; justify-content:center; gap:8px;
-      min-height: 45px; padding: 0 16px; border-radius: 999px; font-weight: 850; font-size:14px;
-      border: 1px solid var(--line); background: white; box-shadow: 0 14px 34px rgba(15,23,42,.08);
-    }
-    .btn-icon{
-      width:24px;
-      height:24px;
-      object-fit:contain;
-      flex-shrink:0;
-    }
-    .github-icon{
-      height:16px;
-      width:auto;
-    }
-    .btn.primary { color: white; border-color: transparent; background: linear-gradient(135deg,var(--blue),var(--cyan)); }
-    .hero-card {
-      background: var(--paper); border: 1px solid var(--line); border-radius: 32px; padding: 0px;
-      box-shadow: var(--shadow);
-    }
-    .hero-card img { width:100%; display:block; border-radius: 20px; border: 1px solid var(--line); background:#fff; cursor: zoom-in; }
-    .caption { color: var(--muted); font-size: 13px; line-height:1.55; margin: 12px 4px 0; }
-    .stats { display:grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-top: 28px; }
-    .stat { padding: 16px; border:1px solid var(--line); background: rgba(255,255,255,.78); border-radius: 20px; }
-    .stat strong { display:block; font-size: 22px; color: var(--ink); }
-    .stat span { display:block; margin-top:4px; color: var(--muted); font-size: 13px; line-height:1.35; }
-    section { padding: 64px 0; }
-    .section-head { max-width: 780px; margin-bottom: 26px; }
-    .kicker { font-size: 12px; text-transform: uppercase; letter-spacing:.15em; color: var(--blue); font-weight: 900; }
-    h2 { margin: 8px 0 10px; font-size: clamp(25px, 4vw, 32px); line-height: 1.05; letter-spacing: -.045em; }
-    .section-head p { margin: 0; color: var(--muted); font-size: 17px; line-height: 1.72; }
-    
-    .grid-2 { display:grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 18px; align-items: stretch; }
-    .grid-3 { display:grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 18px; }
-    .grid-4 { display:grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap: 14px; }
-    
-    /* 🛠️ 優化：將 card 改為內容默認全部頂部靠上對齊，不再上下撐開文字 */
-    .card { 
-      background: var(--paper2); border:1px solid var(--line); border-radius: var(--radius); padding: 15px; 
-      box-shadow: 0 18px 46px rgba(15,23,42,.06); 
-      display: flex; flex-direction: column; justify-content: flex-start;
-    }
-    .card h3 { margin: 0 0 12px; font-size: 34px; letter-spacing:-.025em; line-height: 1.3; }
-    .card p { margin: 0; color: var(--muted); line-height: 1.65; font-size: 15px; }
-    .card ul { margin: 12px 0 0; padding-left: 18px; color: var(--muted); line-height: 1.65; }
-    .pill { display:inline-flex; align-items:center; padding:5px 10px; border-radius:999px; font-size: 12px; font-weight: 900; background: #eff6ff; color: var(--blue); margin-bottom: 12px; width: max-content; }
-    .pill.green { background:#ecfdf5; color: var(--green); }
-    .pill.orange { background:#fff7ed; color: var(--orange); }
-    .pill.purple { background:#f5f3ff; color: var(--purple); }
-    
-    .problem { background: #0f172a; color: white; border-radius: 34px; padding: 34px; overflow:hidden; position: relative; display: flex; flex-direction: column; justify-content: space-between; }
-    .problem:before { content:""; position:absolute; inset:-40%; background: radial-gradient(circle, rgba(99,102,241,.28), transparent 45%); transform: translate(34%, -22%); }
-    .problem > * { position: relative; }
-    .problem p { color: #dbeafe; font-size: 15px; }
-    
-    .question-list {
-      display: grid;
-      gap: 12px;
-      padding-top: 22px; /* 🚀 加上這行！數值越大，三個邊框整體越往下移 */
-      flex-grow: 1;
-      grid-template-rows: repeat(3, 1fr);
-      align-items: stretch;
-    }
-    /* 🚀 專門針對右側白色卡片內的邊框進行下移 */
-    .card .question-list {
-      padding-top: 40px; /* 數值越大，右側的三個邊框整體越往下移 */
-    }
+<link rel="icon" type="image/jpeg" sizes="36x36" href="img/20260608-132943.jpg">
+<meta content="VLA-Trace is a diagnostic framework for tracing representation dynamics, causal control pathways, and behavioral manifestations in Vision-Language-Action models." name="description">
+<style>:root {
+  --bg:#f7faff; --ink:#0f172a; --muted:#5b6477; --line:#dce5ef;
+  --blue:#2f55d4; --cyan:#0ea5b7; --green:#176c52; --orange:#9b511b; --max:1360px;
+}
+* { box-sizing:border-box; }
+html { scroll-behavior:smooth; scroll-padding-top:100px; }
+body { margin:0; color:var(--ink); background:radial-gradient(circle at top left,rgba(47,85,212,.16),transparent 34vw),radial-gradient(circle at 85% 6%,rgba(14,165,183,.15),transparent 30vw),linear-gradient(180deg,#fbfdff 0%,var(--bg) 40%,#fff 100%); font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; }
+a { color:inherit; text-decoration:none; }
+button,select { font:inherit; }
+button { cursor:pointer; }
+img { max-width:100%; }
+:focus-visible { outline:3px solid var(--blue); outline-offset:4px; }
+[hidden] { display:none !important; }
+.wrap { max-width:var(--max); margin:0 auto; padding:0 20px; }
+main, section, .card, .stage, .slide-copy, .slide-media { min-width:0; }
+section { padding:72px 0; }
+section[id] { scroll-margin-top:-56px; }
+[data-carousel], .finding { scroll-margin-top:16px; }
+h1,h2,h3,p { margin-top:0; }
+.section-head { max-width:800px; margin-bottom:32px; }
+.kicker { display:block; margin-bottom:12px; color:var(--blue); font-size:12px; font-weight:700; letter-spacing:.14em; text-transform:uppercase; }
+h2 { margin:0 0 16px; font-size:clamp(28px,3vw,36px); line-height:1.2; letter-spacing:-.035em; }
+.section-head p { margin:0; font-size:17px; line-height:1.7; color:var(--muted); }
+.nav { position:sticky; top:0; z-index:50; background:rgba(248,251,255,.88); border-bottom:1px solid rgba(219,228,244,.85); backdrop-filter:blur(18px); -webkit-backdrop-filter:blur(18px); }
+.nav-inner { max-width:var(--max); margin:0 auto; padding:14px 20px; display:flex; justify-content:space-between; align-items:center; gap:14px; }
+.brand { display:flex; align-items:center; gap:10px; font-weight:800; letter-spacing:-.02em; }
+.brand-logo { width:40px; height:40px; object-fit:contain; }
+.nav-links { display:flex; gap:20px; align-items:center; color:#27354c; font-size:14px; font-weight:600; }
+.nav-links a { display:flex; align-items:center; min-height:44px; position:relative; }
+.nav-links a:hover, .nav-links a[aria-current] { color:var(--blue); }
+.nav-links a[aria-current]::after { content:""; position:absolute; bottom:3px; left:0; right:0; height:2px; background:var(--blue); border-radius:2px; }
+.menu-toggle { display:none; min-height:44px; padding:0 14px; border:1px solid var(--line); border-radius:12px; background:rgba(255,255,255,.85); color:#27354c; }
+.skip-link { position:fixed; z-index:100; top:8px; left:8px; padding:12px; background:white; transform:translateY(-200%); }
+.skip-link:focus { transform:none; }
+.actions { display:flex; flex-wrap:wrap; gap:12px; margin-top:28px; }
+.btn { display:inline-flex; align-items:center; justify-content:center; gap:8px; min-height:45px; padding:0 16px; border-radius:999px; font-weight:650; font-size:14px; border:1px solid var(--line); background:white; box-shadow:0 6px 20px rgba(15,23,42,.05); }
+.btn-icon { width:24px; height:24px; object-fit:contain; flex-shrink:0; }
+.github-icon { height:16px; width:auto; }
+.btn.primary { color:white; border-color:transparent; background:linear-gradient(135deg,var(--blue),var(--cyan)); }
+.grid-2 { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:24px; }
+.grid-3, .timeline { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:24px; }
+.card { padding:28px; border:1px solid var(--line); border-radius:20px; background:rgba(255,255,255,.94); }
+.card h3 { margin:0 0 16px; font-size:24px; line-height:1.3; letter-spacing:-.025em; }
+.card p { margin:0; color:var(--muted); font-size:16px; line-height:1.7; }
+.pill, .stage-label { display:inline-flex; align-items:center; width:fit-content; max-width:100%; font-size:12px; font-weight:650; line-height:1.4; color:var(--stage-color,var(--blue)); background:var(--stage-tint,#eff3ff); padding:5px 10px; border-radius:8px; }
+.s1 { --stage-color:#2f55d4; --stage-tint:#eff3ff; }
+.s2 { --stage-color:#176c52; --stage-tint:#edf8f2; }
+.s3 { --stage-color:#9b511b; --stage-tint:#fff4e9; }
+.pill.green { color:var(--green); background:#edf8f2; }
+.pill.orange { color:var(--orange); background:#fff4e9; }
+#motivation .grid-2 > * { padding:28px; display:flex; flex-direction:column; }
+#motivation .grid-2 > * > div:first-child { min-height:178px; }
+#motivation .grid-2 h3 { font-size:26px; margin:0 0 16px; line-height:1.3; letter-spacing:-.025em; }
+#motivation .grid-2 .pill { margin-bottom:12px; }
+.problem { background:#172338; border:1px solid #26344c; color:#fff; border-radius:22px; }
+.problem .kicker { color:#aac4fc; }
+.problem p { margin:0; color:#d8e2f3; font-size:16px; line-height:1.7; }
+.question-list { display:grid; gap:0; margin-top:24px; }
+.question { border-top:1px solid rgba(255,255,255,.17); padding:18px 0; min-height:94px; }
+.question:last-child { padding-bottom:0; }
+.question b { display:block; font-size:15px; font-weight:650; line-height:1.4; margin-bottom:6px; }
+.question span { display:block; font-size:14px; color:#d8e2f3; line-height:1.6; }
+.evidence-list .question { border-color:var(--line); }
+.evidence-list .question span { color:var(--muted); }
+.stage { display:flex; flex-direction:column; }
+.step-btn { display:inline-flex; align-items:center; min-height:44px; width:fit-content; padding:0 14px; margin-bottom:12px; border:1px solid var(--line); border-radius:12px; background:rgba(255,255,255,.8); color:var(--stage-color); font-size:14px; font-weight:700; }
+.stage .card { flex:1; }
+.stage .pill { margin-bottom:16px; }
+.stage h3 { min-height:62px; }
+.table-wrap { max-width:100%; overflow:auto; border:1px solid var(--line); border-radius:16px; background:#fff; margin-top:32px; }
+.probe-table { width:100%; min-width:700px; border-collapse:collapse; font-size:14px; }
+th,td { padding:16px; border-bottom:1px solid var(--line); text-align:left; vertical-align:top; line-height:1.6; }
+th { background:#f3f7fc; color:#334155; font-weight:650; }
+tr:last-child td { border-bottom:0; }
+.tag { display:inline-block; margin:1px 6px 1px 0; color:#3e557b; font-size:12px; font-weight:600; }
+.tag.green { color:var(--green); }
+.mini-carousel-grid { display:grid; grid-template-columns:minmax(0,1fr); gap:32px; }
+.carousel-shell { min-width:0; padding:28px; border:1px solid var(--line); border-radius:22px; background:#fff; box-shadow:0 14px 36px -24px rgba(39,72,114,.19); }
+.carousel-topline { display:flex; justify-content:space-between; align-items:center; gap:20px; margin-bottom:22px; }
+.carousel-topline .pill { margin-bottom:10px; }
+.carousel-topline h3 { margin:0; font-size:24px; line-height:1.3; letter-spacing:-.025em; }
+.carousel-controls { display:flex; gap:10px; flex-shrink:0; }
+.carousel-btn { width:44px; height:44px; padding:0; border:1px solid var(--line); border-radius:50%; background:#f6f9fd; color:#314d76; font-size:26px; }
+.carousel-btn:hover { background:#eaf2ff; border-color:#b8cbea; }
+.evidence-picker { display:grid; gap:8px; margin:0 0 26px; color:var(--muted); font-size:13px; font-weight:600; }
+.evidence-picker select { min-width:0; width:100%; min-height:46px; padding:10px 36px 10px 14px; color:#263d5d; background:#f8faff; border:1px solid var(--line); border-radius:12px; font-size:15px; text-overflow:ellipsis; }
+.carousel-slide { display:none; }
+.carousel-slide.active { display:grid; grid-template-columns:minmax(0,.7fr) minmax(0,1.3fr); align-items:start; gap:32px; }
+.slide-copy { order:1; }
+.slide-media { order:2; padding:0; background:#fff; }
+.slide-copy .slide-stage { color:var(--stage-color); font-size:12px; font-weight:650; text-transform:uppercase; letter-spacing:.06em; }
+.slide-copy h3 { font-size:23px; line-height:1.3; letter-spacing:-.02em; margin:12px 0; }
+.slide-copy > p { font-size:16px; line-height:1.7; color:var(--muted); margin:0 0 14px; }
+.caption-details { margin-top:12px; border-top:1px solid var(--line); }
+.caption-details summary { padding:14px 0; cursor:pointer; color:var(--stage-color); font-size:14px; font-weight:600; }
+.caption-details p { margin:0 0 14px; font-size:14px; color:var(--muted); line-height:1.7; }
+.carousel-slide.is-table { grid-template-columns:minmax(0,1fr); gap:24px; }
+.is-table .slide-copy { max-width:1000px; }
+.figure-open { display:block; width:100%; padding:0; border:0; background:#fff; color:var(--stage-color,var(--blue)); cursor:zoom-in; }
+.figure-open img { display:block; width:100%; height:auto; object-fit:contain; background:#fff; }
+.slide-media.portrait .figure-open { max-width:720px; margin:auto; }
+.figure-hint { display:block; padding-top:14px; font-size:13px; line-height:1.5; }
+.figure-open:focus-visible { border-radius:4px; }
+.evidence-links { display:flex; flex-wrap:wrap; gap:8px 20px; margin-top:16px; }
+.btn-small-evidence { display:inline-flex; align-items:center; min-height:44px; color:var(--stage-color,var(--blue)); font-size:14px; font-weight:600; }
+.btn-small-evidence:hover { text-decoration:underline; text-underline-offset:4px; }
+.carousel-footer { display:flex; justify-content:flex-end; padding-top:22px; color:var(--muted); font-size:13px; font-variant-numeric:tabular-nums; }
+.finding { padding:26px; }
+.finding .stage-label { margin-bottom:16px; }
+.finding h3 { font-size:23px; }
+.finding:target, .carousel-shell:focus-visible { outline:2px solid #9fb9eb; outline-offset:5px; }
+#implications .grid-3 { gap:32px; }
+#implications .card { padding:24px 0 0; border:0; border-top:1px solid var(--line); border-radius:0; background:transparent; box-shadow:none; }
+#implications .pill { margin-bottom:16px; }
+#implications h3 { font-size:22px; }
+.citation-panel { padding:24px; border:1px solid var(--line); border-radius:18px; background:rgba(255,255,255,.86); }
+.citation-toolbar { display:flex; align-items:center; flex-wrap:wrap; gap:12px 20px; margin-bottom:18px; }
+.citation-toolbar .btn { box-shadow:none; color:var(--blue); }
+#copy-status { color:var(--muted); font-size:14px; }
+pre { max-width:100%; margin:0; padding:20px; overflow:auto; background:#f4f7fc; border:1px solid #e6ecf4; border-radius:10px; font-size:13px; line-height:1.7; }
+code { font-family:ui-monospace,SFMono-Regular,Consolas,monospace; }
+.page-footer { display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:16px; padding:26px 0 36px; border-top:1px solid var(--line); color:var(--muted); font-size:13px; }
+.page-footer div { display:flex; gap:24px; }
+.page-footer a { min-height:44px; display:inline-flex; align-items:center; color:var(--blue); }
+#figure-dialog { width:min(1400px,calc(100vw - 32px)); max-width:calc(100vw - 32px); max-height:calc(100dvh - 32px); padding:0; overflow:auto; border:0; border-radius:16px; background:#fff; }
+#figure-dialog::backdrop { background:rgba(15,23,42,.78); }
+.dialog-toolbar { position:sticky; top:0; display:flex; justify-content:space-between; align-items:center; gap:12px; padding:10px 16px; background:rgba(255,255,255,.96); border-bottom:1px solid var(--line); }
+.dialog-toolbar a { display:inline-flex; align-items:center; min-height:44px; color:var(--blue); font-size:14px; }
+.dialog-close { width:44px; height:44px; border:0; border-radius:50%; background:#eff3f9; font-size:26px; }
+#figure-image { display:block; width:100%; height:auto; padding:16px; background:white; }
+#figure-caption { margin:0; padding:0 20px 20px; font-size:14px; line-height:1.6; color:var(--muted); }
+@media(max-width:980px) {
+ .nav-inner { flex-wrap:wrap; }
+ .menu-toggle { display:block; }
+ .nav-links { display:none; width:100%; flex-wrap:wrap; gap:8px 24px; padding:4px 0; }
+ .nav-links.is-open { display:flex; }
+ .timeline { gap:16px; }
+ .stage .card { padding:22px; }
+ .stage h3 { min-height:90px; }
+ .carousel-slide.active { grid-template-columns:minmax(0,1fr); }
+}
+@media(max-width:700px) {
+ section { padding:48px 0; }
+ .grid-2,.grid-3,.timeline { grid-template-columns:minmax(0,1fr); gap:20px; }
+ .section-head { margin-bottom:26px; }
+ .section-head p { font-size:16px; }
+ .card, #motivation .grid-2 > * { padding:24px; }
+ #motivation .grid-2 > * > div:first-child { min-height:0; }
+ #motivation .grid-2 h3 { font-size:24px; }
+ .stage h3 { min-height:0; }
+ .stage .card { padding:24px; }
+ .carousel-shell { padding:22px 18px; border-radius:18px; }
+ .carousel-topline { align-items:flex-start; flex-wrap:wrap; gap:12px; }
+ .carousel-controls { margin-left:auto; }
+ .carousel-topline h3 { font-size:23px; }
+ .evidence-picker select { font-size:14px; }
+ .slide-copy h3 { font-size:22px; }
+ .citation-panel { padding:18px; }
+ .finding { padding:24px; }
+ pre { padding:16px; font-size:12px; }
+ #figure-dialog { width:calc(100vw - 16px); max-width:calc(100vw - 16px); }
+}
+@media(prefers-reduced-motion:reduce) {
+ html { scroll-behavior:auto; }
+ *,*::before,*::after { animation:none !important; transition:none !important; scroll-behavior:auto !important; }
+}
 
-    .question {
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      gap: 4px;
-      padding: 16px 18px;
-      border: 1px solid rgba(255,255,255,.14);
-      border-radius: 18px;
-      background: rgba(255,255,255,.06);
-      height: 100%;
-      box-sizing: border-box;
-    }
-
-    .question b {
-      display: block;
-      color: white;
-      font-size: 15px;
-      font-weight: 800;
-      line-height: 1.3;
-    }
-
-    .question span {
-      color: #dbeafe;
-      line-height: 1.5;
-      font-size: 14px;
-    }
-    .evidence-list .question {
-      background: #f8fbff;
-      border: 1px solid #dbe4f4;
-    }
-
-    .evidence-list .question b {
-      color: var(--ink);
-    }
-
-    .evidence-list .question span {
-      color: var(--muted);
-    }
-
-    /* Method Timeline 完美等高排列，內容同時靠上對齊 */
-    .timeline { 
-      display: grid; 
-      grid-template-columns: repeat(3, 1fr); 
-      gap: 18px; 
-      position: relative; 
-      align-items: stretch; 
-    }
-    .stage { 
-      position: relative; 
-      padding-top: 28px; 
-      display: flex;         
-      flex-direction: column; 
-    }
-    .stage .card {
-      flex-grow: 1;          
-    }
-    .step-btn {
-      position:absolute; top:0; left:24px; transform: translateY(-50%);
-      width:42px; height:42px; border-radius: 16px; color:white;
-      background: linear-gradient(135deg,var(--blue),var(--cyan));
-      display:flex; align-items:center; justify-content:center; font-weight: 900;
-      box-shadow: 0 10px 28px rgba(47,85,212,.22);
-      cursor: pointer;
-      text-decoration: none;
-      z-index: 2;
-    }
-    .probe-table, .small-table { width:100%; border-collapse: collapse; overflow:hidden; font-size: 14px; }
-    .table-wrap { overflow:auto; border:1px solid var(--line); border-radius: 20px; background:#fff; }
-    th, td { padding: 12px 14px; border-bottom:1px solid var(--line); text-align:left; vertical-align: top; }
-    th { background:#f5f8ff; color:#334155; font-weight:900; white-space:nowrap; }
-    tr:last-child td { border-bottom:none; }
-    td.num { font-variant-numeric: tabular-nums; white-space:nowrap; text-align:right; }
-    .tag { display:inline-block; padding:3px 8px; border-radius: 999px; background:#eef2ff; color:#3730a3; font-size:12px; font-weight:900; margin:1px; }
-    .tag.green { background:#dcfce7; color:#166534; }
-    .tag.gray { background:#f1f5f9; color:#475569; }
-    .figure-grid { display:grid; grid-template-columns: 1fr 1fr; gap: 18px; }
-    .figure-card { background:white; border:1px solid var(--line); border-radius: 24px; overflow:hidden; box-shadow: 0 18px 46px rgba(15,23,42,.07); }
-    .figure-card img { width:100%; display:block; background:white; cursor:zoom-in; }
-    .fig-text { padding: 18px; }
-    .fig-text h3 { margin: 0 0 8px; font-size: 20px; }
-    .fig-text p { margin: 0; color:var(--muted); line-height:1.6; }
-    .wide { grid-column: span 2; }
-    .findings { counter-reset: finding; }
-    .finding { position:relative; padding-left: 74px; }
-    .finding:before { counter-increment: finding; content: counter(finding); position:absolute; left:22px; top:20px; width:36px; height:36px; border-radius:14px; background:#eff6ff; color:var(--blue); display:flex; align-items:center; justify-content:center; font-weight:900; }
-    details { background:white; border:1px solid var(--line); border-radius: 20px; padding: 0; box-shadow: 0 14px 34px rgba(15,23,42,.05); overflow: hidden; }
-    details + details { margin-top: 12px; }
-    summary { cursor:pointer; list-style:none; padding: 18px 22px; font-weight:900; display:flex; justify-content:space-between; align-items:center; }
-    summary::-webkit-details-marker { display:none; }
-    summary:after { content:"+"; font-size:24px; color:var(--blue); }
-    details[open] summary:after { content:"–"; }
-    .detail-body { padding: 0 22px 20px; color: var(--muted); line-height: 1.65; }
-    .detail-body code, pre { background:#f8fafc; border:1px solid var(--line); border-radius:12px; padding: 2px 6px; color:#1e293b; }
-    pre { padding: 18px; overflow:auto; line-height:1.45; }
-    
-    .callout { border: 1px solid #bfdbfe; background: linear-gradient(135deg,#eff6ff,#f8fbff); border-radius: 24px; padding: 24px; margin-top: 24px; grid-column: span 2; }
-    .callout strong { color:#1d4ed8; }
-    .repo { background:#0b1220; color:#e2e8f0; border-radius: 24px; padding: 24px; overflow:auto; }
-    .repo code { color:#e2e8f0; }
-    footer { padding: 44px 20px 72px; color: var(--muted); text-align:center; }
-    .lightbox { display:none; position: fixed; z-index: 100; inset: 0; background: rgba(2,6,23,.86); padding: 28px; align-items:center; justify-content:center; }
-    .lightbox.active { display:flex; }
-    .lightbox img { max-width: min(96vw, 1400px); max-height: 90vh; background:#fff; border-radius: 14px; }
-    .close { position: fixed; top: 18px; right: 24px; color: white; font-size: 36px; cursor:pointer; }
-
-    .carousel-shell {
-      background: rgba(255,255,255,.96);
-      border: 1px solid var(--line);
-      border-radius: 30px;
-      padding: 18px;
-      box-shadow: var(--shadow);
-      margin: 22px 0;
-      overflow: hidden;
-    }
-    .carousel-topline {
-      display:flex; align-items:flex-start; justify-content:space-between; gap: 18px;
-      padding: 4px 4px 14px;
-    }
-    .carousel-topline h3 { margin: 2px 0 0; font-size: 24px; letter-spacing: -.035em; }
-    .carousel-controls { display:flex; gap: 10px; flex: 0 0 auto; }
-    .carousel-btn {
-      width: 42px; height: 42px; border-radius: 999px;
-      border: 1px solid var(--line); background: #fff; color: var(--blue);
-      font-size: 28px; line-height: 1; font-weight: 800; cursor: pointer;
-      box-shadow: 0 12px 28px rgba(15,23,42,.08);
-    }
-    .carousel-btn:hover { background:#eff6ff; transform: translateY(-1px); }
-    .carousel-viewport {
-      position: relative; min-height: 560px;
-      border-radius: 24px; overflow: hidden;
-      border: 1px solid var(--line); background: #f8fafc;
-    }
-    .carousel-slide {
-      position: absolute; inset: 0;
-      opacity: 0; pointer-events: none;
-      transform: translateX(22px) scale(.992);
-      transition: opacity .32s ease, transform .32s ease;
-      display: grid; grid-template-columns: 1.45fr .55fr; gap: 0;
-      background: white;
-    }
-    .carousel-slide.active { opacity: 1; pointer-events: auto; transform: translateX(0) scale(1); }
-    .slide-media { display:flex; align-items:center; justify-content:center; background:#fff; padding: 12px; min-width:0; }
-    .slide-media img { width:100%; height:100%; max-height: 540px; object-fit: contain; cursor: zoom-in; border-radius: 16px; }
-    /* 修改前 */
-    .slide-copy {
-      padding: 24px;
-      background: linear-gradient(180deg,#f8fbff,#ffffff);
-      border-left: 1px solid var(--line);
-      display: flex;
-      flex-direction: column;
-      justify-content: flex-start; /* 如果原本是 center 或 space-between，請確保它是 flex-start */
-    }
-    .slide-stage {
-      display:inline-flex; width:max-content; margin-bottom: 14px;
-      color: var(--blue); background:#eef4ff; border-radius:999px; padding:6px 10px;
-      font-size:12px; font-weight:900; letter-spacing:.04em; text-transform:uppercase;
-    }
-    .slide-copy h3 { margin:0 0 12px; font-size: clamp(23px, 2.5vw, 34px); line-height:1.08; letter-spacing:-.04em; }
-    .slide-copy p { margin:0; color:var(--muted); line-height:1.72; font-size:15px; }
-    .carousel-footer { display:flex; align-items:center; justify-content:space-between; gap: 14px; padding: 14px 4px 4px; }
-    .carousel-dots { display:flex; align-items:center; gap: 8px; flex-wrap:wrap; }
-    .carousel-dot {
-      width: 9px; height: 9px; border-radius:999px; border:0; padding:0; cursor:pointer;
-      background:#cbd5e1; transition: width .2s ease, background .2s ease;
-    }
-    .carousel-dot.active { width: 28px; background: linear-gradient(135deg,var(--blue),var(--cyan)); }
-    .slide-counter { color: var(--muted); font-size: 13px; font-weight: 850; }
-    .thumb-strip {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 10px;
-      justify-content: center;
-      margin-top: 14px;
-    }
-
-    .thumb {
-      flex: 0 0 calc(33.333% - 7px);
-      border: 1px solid var(--line); background:#fff; border-radius: 16px; padding: 8px; cursor: pointer;
-      display:grid; grid-template-rows: 74px auto; gap: 7px; text-align:left; color: var(--muted);
-      box-shadow: 0 10px 22px rgba(15,23,42,.04);
-    }
-    .thumb img { width: 100%; height: 74px; object-fit: cover; border-radius: 10px; background:#f8fafc; }
-    .thumb span { font-size: 12px; line-height:1.25; font-weight:850; }
-    .thumb.active { border-color: rgba(47,85,212,.55); box-shadow: 0 0 0 3px rgba(47,85,212,.10); color: var(--blue); }
-    
-    .mini-carousel-grid {
-      display: grid;
-      grid-template-columns: 1fr; 
-      gap: 28px;                  
-      margin-top: 24px;
-    }
-
-    .carousel-shell.compact { 
-      margin: 0; 
-      background: rgba(255,255,255,.96) !important;
-      border: 1px solid var(--line) !important;
-      border-radius: 30px !important;
-      box-shadow: var(--shadow) !important;
-      padding: 24px 28px !important;
-    }
-
-    .compact-head h3 { font-size: 20px; }
-    .compact .carousel-btn { width: 36px; height: 36px; font-size: 24px; }
-
-    .compact .carousel-viewport {
-      border: none !important;
-      background: transparent !important;
-      box-shadow: none !important;
-      height: auto !important;
-      min-height: 0 !important;
-      position: relative;
-    }
-
-    .compact .carousel-slide {
-      position: relative;
-      display: none;
-      opacity: 0;
-      transition: opacity .3s ease;
-      grid-template-columns: 0.8fr 1.2fr !important;  
-      grid-template-rows: auto !important;         
-      background: transparent !important;
-      gap: 3.5rem !important; 
-      align-items: flex-start !important; 
-      width: 100%;
-    }
-    
-    .compact .carousel-slide.active { 
-      display: grid !important; 
-      opacity: 1; 
-      pointer-events: auto; 
-    }
-
-    .compact .slide-media {
-      order: 2 !important; 
-      height: auto !important;
-      padding: 0 !important;
-      background: transparent !important;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      width: 100%;
-    }
-
-    .compact .slide-media img {
-      width: 100% !important;
-      height: auto !important;
-      max-height: 500px !important;
-      object-fit: contain !important; 
-      border: none !important;
-      box-shadow: none !important;
-      border-radius: 14px !important;
-      display: block;
-    }
-
-    /* 修改後 */
-    .compact .slide-copy { 
-      order: 1 !important; 
-      border-left: none !important; 
-      border-top: none !important;
-      padding: 0 !important; 
-      background: transparent !important;
-      display: flex !important;
-      flex-direction: column !important;
-      justify-content: flex-start !important; /* 內部元素靠頂 */
-      align-self: flex-start !important;      /* 自身在網格中靠頂，防止被垂直拉伸 */
-      text-align: left !important;
-    }
-    .video-stack{
-        display:flex !important;
-        flex-direction:column !important;
-        gap:14px;
-    }
-
-    .video-item{
-        width:100%;
-    }
-
-    .video-item video{
-        width:100%;
-        max-height:100px;
-        border-radius:14px;
-        object-fit:contain;
-    }
-
-    .video-tag{
-        display:inline-block;
-        margin-bottom:8px;
-        padding:4px 10px;
-        border-radius:999px;
-        font-size:12px;
-        font-weight:800;
-        letter-spacing:.04em;
-    }
-
-    .video-tag.success{
-        background:#dcfce7;
-        color:#166534;
-    }
-
-    .video-tag.failure{
-        background:#fee2e2;
-        color:#b91c1c;
-    }
-
-    .compact .slide-copy h3 { font-size: 24px !important; margin: 0 0 12px 0 !important; color: var(--ink); letter-spacing: -.03em !important; line-height: 1.2 !important; }
-    .compact .slide-copy p { font-size: 14.5px !important; line-height: 1.65 !important; color: var(--muted); margin: 0; }
-
-    .experiment-index { margin-top: 24px; }
-    .index-grid { display:grid; grid-template-columns: repeat(3,1fr); gap: 18px; }
-    .index-grid b { display:block; margin-bottom:6px; color:var(--ink); }
-    .index-grid p { margin:0; color:var(--muted); line-height:1.6; }
-
-    .appendix-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
-    .appendix-pane { display: flex; flex-direction: column; gap: 16px; }
-    .appendix-block { background: white; border: 1px solid var(--line); border-radius: 20px; padding: 22px; box-shadow: 0 10px 30px rgba(15, 23, 42, .04); }
-    .appendix-block-title { font-weight: 900; font-size: 18px; margin: 0 0 6px 0; display: flex; align-items: center; gap: 8px; }
-    .appendix-block-subtitle { font-size: 14px; font-weight: 700; margin: 0 0 12px 0; color: var(--ink); }
-    .appendix-block-text { font-size: 14px; color: var(--muted); line-height: 1.6; margin: 0 0 16px 0; }
-    .appendix-evidence-title { font-size: 12px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.05em; color: #475569; margin: 0 0 8px 0; }
-    .appendix-list { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 6px; font-size: 14px; color: var(--muted); }
-    .appendix-list li { display: flex; align-items: flex-start; gap: 6px; line-height: 1.5; }
-    .appendix-list li::before { content: "✓"; font-weight: 900; }
-    .blue-theme .appendix-list li::before { color: var(--blue); }
-    .green-theme .appendix-list li::before { color: var(--green); }
-    .orange-theme .appendix-list li::before { color: var(--orange); }
-    .appendix-block.blue-theme { border-left: 4px solid var(--blue); }
-    .appendix-block.green-theme { border-left: 4px solid var(--green); }
-    .appendix-block.orange-theme { border-left: 4px solid var(--orange); }
-
-    /* 💡 修正：為 Findings 部分個別加上靠底標籤的彈性分佈，不與全局 card 衝突 */
-    .finding-card-content { flex-grow: 1; display: flex; flex-direction: column; justify-content: flex-start; }
-    /* 僅強制 S1, S2, S3 輪播容器內的文字全部靠上對齊 */
-    .slide-copy, .compact .slide-copy {
-      justify-content: flex-start !important;
-    }
-    /* 🎯 僅縮小指定卡片組中的 h3 字體，完全不影響大輪播、小輪播或網頁其他 h3 */
-    .grid-4 .card h3, 
-    .grid-3 .card h3 {
-      font-size: 1.3rem !important; /* 原始一般是 1.4rem~1.5rem，這裡縮小到 1.15rem，你可以根據視覺效果微調 */
-      margin-top: 8px !important;    /* 稍微優化一下與上方標籤（pill）的間距 */
-      margin-bottom: 6px !important; /* 稍微優化一下與下方描述文字的間距 */
-    }
-    /* Paper metadata: authors and affiliations */
-    .paper-meta {
-      margin-top: 20px;
-      padding: 20px 22px;
-      border: 1px solid rgba(47,85,212,.18);
-      border-radius: 22px;
-      background: linear-gradient(135deg, rgba(255,255,255,.88), rgba(232,238,252,.72));
-      box-shadow: 0 18px 45px rgba(15, 23, 42, .07);
-      max-width: 760px;
-    }
-    .authors {
-      font-size: 14px;
-      line-height: 1.85;
-      color: #1f2a44;
-      font-weight: 650;
-      white-space: nowrap;
-      overflow-x: auto;
-    }
-    .authors a {
-      color: var(--blue);
-      text-decoration: none;
-    }
-    .authors a:hover { border-bottom-color: rgba(47,85,212,.7); }
-    .authors sup, .affiliations sup { font-size: 10px; color: var(--blue); font-weight: 900; }
-    .affiliations {
-      margin-top: 12px;
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-      font-size: 12.5px;
-      line-height: 1.6;
-      color: var(--muted);
-    }
-    .affiliations span {
-      display: inline-flex;
-      align-items: center;
-      gap: 4px;
-      padding: 6px 10px;
-      border-radius: 999px;
-      background: rgba(255,255,255,.78);
-      border: 1px solid rgba(219,228,244,.92);
-    }
-    .author-notes {
-      margin-top: 10px;
-      color: #64748b;
-      font-size: 12.5px;
-      line-height: 1.55;
-    }
-    .subtitle-sm {
-      font-size: calc(clamp(19px, 2.6vw, 29px) * 0.8) !important;
-    }
-    section.hero h2 { font-size: 60px !important; line-height:1.0 !important; }
-    .video-stack{
-        display:flex !important;
-        flex-direction:column !important;
-        gap:12px;
-    }
-
-    .video-stack video{
-        width:100% !important;
-        max-height:500px;
-    }
-    /* 限制导航栏品牌 Logo 尺寸 */
-    .brand-logo {
-      height: 50px;    /* 控制高度，按需微调 24~32px */
-      width: auto;     /* 宽度自适应，保证不变形 */
-      object-fit: contain;
-      display: block;
-    }
-    /* 小证据链接按钮，匹配你图里的样式 */
-    .btn-small-evidence {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      font-size: 12px;
-      padding: 4px 10px;
-      border-radius: 999px;
-      border: 1px solid var(--line);
-      background: transparent; /* 无背景 */
-      color: var(--ink);
-      font-weight: 500;
-      cursor: pointer;
-    }
-    /* 👇 只用于 Finding 1~2 / 3~4 / 5~7 大按钮，绝不影响其他 */
-    .btn-finding-large {
-      font-size: 16px !important;
-      padding: 8px 18px !important;
-      font-weight: 700 !important;
-      border-width: 1px !important;
-      white-space: nowrap !important;
-    }
-    .btn-small-evidence:hover {
-      background: var(--soft);
-    }
-    .btn-small-evidence .arrow {
-      margin-left: 2px;
-    }
-    /* S1/S2/S3 三栏导航条样式 */
-    /* S1/S2/S3 三栏导航条样式 */
-    /* S1/S2/S3 三栏导航条样式 */
-    .stage-nav {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 16px;
-      margin-top: 24px;
-      margin-bottom: 32px; /* 👈 这里加了底部距离，数值越大越远 */
-    }
-    .stage-card {
-      border: 1px solid var(--line);
-      border-radius: 16px;
-      padding: 16px;
-      background: white;
-      display: flex;
-      align-items: center;
-      gap: 12px;
-    }
-    .stage-card.s1 {
-      border-color: rgba(47,85,212,.2);
-      background: rgba(47,85,212,.05);
-    }
-    .stage-card.s2 {
-      border-color: rgba(22,163,74,.2);
-      background: rgba(22,163,74,.05);
-    }
-    .stage-card.s3 {
-      border-color: rgba(249,115,22,.2);
-      background: rgba(249,115,22,.05);
-    }
-    
-    .stage-badge {
-      width: 36px;
-      height: 36px;
-      border-radius: 12px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-weight: 900;
-      font-size: 14px;
-      position: static;
-      flex-shrink: 0;
-    }
-    .stage-card.s1 .stage-badge {
-      background: rgba(47,85,212,.1);
-      color: var(--blue);
-    }
-    .stage-card.s2 .stage-badge {
-      background: rgba(22,163,74,.1);
-      color: var(--green);
-    }
-    .stage-card.s3 .stage-badge {
-      background: rgba(249,115,22,.1);
-      color: var(--orange);
-    }
-    /* 删掉原来的 .stage-content 样式，不再使用 */
-    /* 卡片高亮动画样式 */
-    /* 卡片 & 轮播容器 通用高亮样式 */
-    @keyframes highlightCard {
-      0% {
-        transform: scale(1);
-        outline: transparent solid 0px;
-        box-shadow: 0 0 0 0 rgba(47,85,212,0);
-      }
-      25% {
-        transform: scale(1.01);
-        outline: var(--blue) solid 3px; /* 蓝色外轮廓，粗细3px可自行调整 */
-        outline-offset: 2px; /* 轮廓和原边框拉开距离，更醒目 */
-        box-shadow: 0 0 0 6px rgba(47,85,212,0.25);
-      }
-      100% {
-        transform: scale(1);
-        outline: transparent solid 0px;
-        box-shadow: 0 0 0 0 rgba(47,85,212,0);
-      }
-    }
-
-    .carousel-shell.highlight,
-    .card.highlight,
-    .finding.highlight {
-      animation: highlightCard 1.5s ease-out 2;
-    }
-
-
-    @media (max-width: 980px) {
-      .hero-grid, .grid-2, .timeline, .figure-grid, .appendix-grid { grid-template-columns: 1fr; }
-      .grid-3, .grid-4, .stats { grid-template-columns: repeat(2, minmax(0,1fr)); }
-      .wide { grid-column: span 1; }
-      .nav-links { display: none; }
-      .hero { padding-top: 46px; }
-      .callout { grid-column: span 1; }
-      .timeline { align-items: stretch; }
-      .stage { padding-top: 28px; margin-bottom: 20px; }
-
-      .main-carousel .carousel-viewport { min-height: 520px; } 
-      .main-carousel .carousel-slide { 
-        grid-template-columns: 1fr; 
-        grid-template-rows: minmax(280px, 1fr) auto; 
-      }
-      .main-carousel .slide-copy { 
-        border-left: 0; 
-        border-top: 1px solid var(--line); 
-        padding: 22px; 
-      }
-
-      .thumb-strip, .mini-carousel-grid, .index-grid { grid-template-columns: 1fr; }
-      
-      .thumb { 
-        grid-template-columns: 120px 1fr; 
-        grid-template-rows: auto; 
-        align-items: center; 
-      }
-      .thumb img { height: 76px; }
-    }
-
-    @media (max-width: 768px) {
-      .compact .carousel-viewport { height: auto !important; }
-      .compact .carousel-slide {
-        grid-template-columns: 1fr !important;
-        grid-template-rows: auto auto !important;
-        gap: 1.5rem !important;
-      }
-      .compact .slide-media { order: 2 !important; }
-      .compact .slide-copy { 
-        order: 1 !important;
-        padding: 0 !important; 
-        justify-content: flex-start !important;
-      }
-    }
-
-    @media (max-width: 620px) {
-      .grid-3, .grid-4, .stats { grid-template-columns: 1fr; }
-      .card, .problem { padding: 20px; }
-      h1 { font-size: 52px; }
-      .actions { flex-direction: column; }
-      .btn { width:100%; }
-      .main-carousel .carousel-viewport { min-height: 600px; }
-      .main-carousel .carousel-topline { flex-direction: column; }
-      .main-carousel .slide-media img { max-height: 300px; }
-    }
-  </style>
+    /* Homepage: title, original framework, authors and affiliations. */
+    .hero { position:relative; isolation:isolate; padding:64px 0 56px; text-align:center; }
+    .hero-atmosphere { position:absolute; inset:0; z-index:-1; overflow:hidden; pointer-events:none; -webkit-mask-image:radial-gradient(ellipse 50% 50% at 50% 48%,#000 32%,transparent 100%); mask-image:radial-gradient(ellipse 50% 50% at 50% 48%,#000 32%,transparent 100%); }
+    .hero-atmosphere::before, .hero-atmosphere::after { content:""; position:absolute; inset:-6%; opacity:1; }
+    .hero-atmosphere::before { background:radial-gradient(ellipse at 20% 27%,rgba(121,157,249,.20),transparent 46%),radial-gradient(ellipse at 80% 62%,rgba(135,220,230,.12),transparent 42%); animation:hero-flow-blue 4.2s cubic-bezier(.2,.65,.25,1) both; }
+    .hero-atmosphere::after { background:radial-gradient(ellipse at 83% 23%,rgba(129,222,231,.22),transparent 43%),radial-gradient(ellipse at 34% 82%,rgba(174,160,229,.09),transparent 43%); animation:hero-flow-cyan 4.2s cubic-bezier(.2,.65,.25,1) both; }
+    @keyframes hero-flow-blue { from { transform:translate3d(-3%,2%,0) scale(1.07); opacity:.2; } to { transform:translate3d(0,0,0) scale(1); opacity:1; } }
+    @keyframes hero-flow-cyan { from { transform:translate3d(3%,-2%,0) scale(1.05); opacity:.15; } to { transform:translate3d(0,0,0) scale(1); opacity:1; } }
+    .hero-heading { max-width:1040px; margin:0 auto 34px; }
+    .hero h1 { margin:0 0 18px; color:#152b50; font-size:clamp(42px,5.4vw,68px); line-height:1.02; letter-spacing:-.055em; font-weight:800; }
+    .hero-paper-title { margin:0; color:#293c58; font-size:clamp(21px,2.2vw,30px); line-height:1.32; font-weight:650; letter-spacing:-.025em; }
+    .hero-framework { width:min(100%,1000px); margin:0 auto; }
+    .hero-framework > a { position:relative; isolation:isolate; display:block; padding:14px; background:linear-gradient(135deg,rgba(255,255,255,.88),rgba(236,246,255,.58) 52%,rgba(255,255,255,.84)); border:1px solid rgba(255,255,255,.94); border-radius:20px; box-shadow:0 1px 0 rgba(255,255,255,.95) inset,0 0 0 1px rgba(137,164,205,.18),0 10px 26px rgba(72,114,165,.06),0 28px 72px -30px rgba(81,142,186,.19); backdrop-filter:blur(16px) saturate(1.08); -webkit-backdrop-filter:blur(16px) saturate(1.08); }
+    .hero-framework > a::before { content:""; position:absolute; inset:0; z-index:-1; pointer-events:none; border-radius:inherit; background:linear-gradient(115deg,rgba(172,194,255,.20),transparent 35%,rgba(129,217,231,.22)); opacity:.25; transition:opacity .35s ease; }
+    .hero-framework > a:hover::before, .hero-framework > a:focus-visible::before { opacity:1; }
+    .hero-framework img { display:block; width:100%; height:auto; object-fit:contain; background:#fff; border-radius:8px; }
+    .hero-framework figcaption { margin-top:12px; font-size:12px; color:#526580; }
+    .hero-framework figcaption a { display:inline-flex; align-items:center; min-height:32px; }
+    .hero .paper-meta { max-width:1050px; margin:22px auto 0; padding:0; }
+    .hero .authors { font-size:16px; line-height:2; color:#254b86; font-weight:650; }
+    .hero .authors > span { display:inline-block; white-space:nowrap; }
+    .hero .authors sup, .hero .affiliations sup { color:#2f55d4; font-size:10px; line-height:0; }
+    .hero .affiliations { display:flex; flex-wrap:wrap; justify-content:center; gap:8px 22px; margin:16px auto 0; max-width:970px; font-size:13px; color:#526178; line-height:1.7; }
+    .hero .affiliations > span { max-width:100%; }
+    .hero .author-notes { margin-top:14px; color:#626f83; font-size:12px; line-height:1.7; }
+    .hero .actions { justify-content:center; gap:12px; margin-top:24px; }
+    .hero .btn { min-width:115px; min-height:44px; font-size:14px; font-weight:650; border:1px solid rgba(255,255,255,.94); background:linear-gradient(150deg,rgba(255,255,255,.95),rgba(240,247,255,.75)); box-shadow:0 1px 0 #fff inset,0 0 0 1px rgba(142,166,199,.17),0 6px 16px rgba(48,87,132,.06); backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px); transition:background-color .2s ease,border-color .2s ease,color .2s ease; }
+    .hero .btn.primary { color:#fff; background:linear-gradient(125deg,#3156c9,#177b9f); border-color:rgba(255,255,255,.28); box-shadow:0 1px 0 rgba(255,255,255,.28) inset,0 6px 20px rgba(39,92,154,.18); }
+    .hero .btn:hover { border-color:rgba(89,137,204,.55); color:#234984; }
+    .hero .btn.primary:hover { color:#fff; background:linear-gradient(125deg,#294bb5,#126f91); }
+    .hero a:focus-visible { outline:3px solid #2f55d4; outline-offset:5px; }
+    @media (max-width:620px) {
+      .hero { padding:38px 0 44px; }
+      .hero-heading { margin-bottom:26px; }
+      .hero-title-break { display:none; }
+      .hero-framework > a { padding:6px; border-radius:12px; }
+      .hero .paper-meta { margin-top:18px; }
+      .hero .authors { font-size:14px; line-height:2; }
+      .hero .affiliations { gap:6px 16px; font-size:12px; margin-top:12px; }
+      .hero .author-notes { font-size:11px; }
+      .hero .actions { flex-direction:row; flex-wrap:wrap; gap:10px; }
+      .hero .btn { width:auto; min-width:96px; }
+    }
+    @media (prefers-reduced-motion:reduce) {
+      .hero-atmosphere::before, .hero-atmosphere::after { animation:none; transform:none; opacity:1; }
+      .hero-framework > a::before, .hero .btn { transition:none; }
+    }
+</style>
 </head>
 <body>
-<nav class="nav">
+<a class="skip-link" href="#top">Skip to content</a><nav class="nav" aria-label="Main navigation">
 <div class="nav-inner">
   <a class="brand" href="#top">
     <img src="img/20260608-132943.jpg" class="brand-logo" alt="logo">
     <span>VLA-Trace</span>
   </a>
-<div class="nav-links">
+<button class="menu-toggle" id="menu-toggle" type="button" aria-expanded="false" aria-controls="site-nav">Menu</button><div class="nav-links" id="site-nav">
 <a href="#motivation">Motivation</a>
 <a href="#method">Method</a><a href="#results">Results</a>
 <a href="#findings">Findings</a>
@@ -731,55 +238,34 @@
 </div>
 </div>
 </nav>
-<main class="wrap" id="top">
-<section class="hero">
-<div class="hero-grid">
-<div>
-<h2>VLA-Trace</h2>
-<p class="subtitle subtitle-sm">Diagnosing Vision-Language-Action Models through Representation and Behavior Tracing</p>
-<div class="paper-meta">
-  <div class="authors">
-    <a>Haoyuan Shi</a><sup>1,2,†</sup>,
-    <a>Xiancong Ren</a><sup>1,†</sup>,
-    <a>Yingji Zhang</a><sup>1,3,†</sup>,
-    <a>Qinfan Zhang</a><sup>1,4,†</sup>,
-    <a><br>Jiayu Hu</a><sup>1</sup>,
-    <a>Haozhe Shan</a><sup>1,5</sup>,
-    <a>Han Dong</a><sup>1,6</sup>,
-    <a>Jinpeng Lu</a><sup>1,2</sup>,
-    <a>Yinda Chen</a><sup>1,2</sup>,
-    <a><br>Yi Zhang</a><sup>1</sup>,
-    <a>Yong Dai</a><sup>1,‡</sup>,
-    <a>Xiaozhu Ju</a><sup>1,✉</sup>
+<main class="wrap" id="top" tabindex="-1">
+<section class="hero" aria-labelledby="project-title">
+  <div class="hero-atmosphere" aria-hidden="true"></div>
+  <header class="hero-heading">
+    <h1 id="project-title">VLA-Trace</h1>
+    <p class="hero-paper-title">Diagnosing Vision-Language-Action Models Through<br class="hero-title-break"> Representation and Behavior Tracing</p>
+  </header>
+  <figure class="hero-framework">
+    <a href="img/overview0526_01.png" target="_blank" rel="noopener" aria-label="View the complete VLA-Trace framework at full size">
+      <img src="img/overview0526_01.png" alt="Complete VLA-Trace framework: model checkpoints, representation shifts, causal pathways, and behavioral probes" width="4233" height="2474" fetchpriority="high" decoding="async">
+    </a>
+    <figcaption><a href="img/overview0526_01.png" target="_blank" rel="noopener">View full-size framework ↗</a></figcaption>
+  </figure>
+  <div class="paper-meta">
+    <div class="authors"><span>Haoyuan Shi<sup>1,2,†,*</sup></span>, <span>Xiancong Ren<sup>2,†,‡</sup></span>, <span>Yingji Zhang<sup>2,3,†,*</sup></span>, <span>Qinfan Zhang<sup>2,4,†,*</sup></span>, <span>Jiayu Hu<sup>2</sup></span>, <span>Haozhe Shan<sup>2,5</sup></span>, <span>Han Dong<sup>2,6</sup></span>, <span>Jinpeng Lu<sup>1,2</sup></span>, <span>Yinda Chen<sup>1,2</sup></span>, <span>Yi Zhang<sup>2</sup></span>, <span>Yong Dai<sup>2</sup></span>, <span>Xiaozhu Ju<sup>2,✉</sup></span></div>
+    <div class="affiliations" aria-label="Affiliations"><span><sup>1</sup> University of Science and Technology of China</span><span><sup>2</sup> X-Humanoid</span><span><sup>3</sup> Harbin Engineering University</span><span><sup>4</sup> Beihang University</span><span><sup>5</sup> Fudan University</span><span><sup>6</sup> University of New South Wales</span></div>
+    <div class="author-notes">† Core contributors · ‡ Project leader · ✉ Corresponding author · * Work done during the internship at X-Humanoid</div>
+
   </div>
-  <div class="affiliations" aria-label="Affiliations">
-    <span><sup>1</sup> X-Humanoid</span>
-    <span><sup>2</sup> University of Science and Technology of China</span>
-    <span><sup>3</sup> University of Manchester</span>
-    <span><sup>4</sup> Beihang University</span>
-    <span><sup>5</sup> Fudan University</span>
-    <span><sup>6</sup> University of New South Wales</span>
-  </div>
-  <div class="author-notes">† Core contributors · ‡ Project leader · ✉ Corresponding author</div>
-</div>
-<div class="actions">
-  <a class="btn primary"
-  href="https://arxiv.org/abs/2605.30117"
-  rel="noreferrer"
-  target="_blank">
- <img src="img/arxiv-logo-one-color-white.svg"
-      class="btn-icon"
-      alt="arXiv">
+  <div class="actions">
+  <a class="btn primary" href="https://arxiv.org/abs/2605.30117" rel="noreferrer" target="_blank">
+ <img src="img/arxiv-logo-one-color-white.svg" class="btn-icon" alt="arXiv">
  Paper
 </a>
-<a class="btn"
-   href="https://github.com/VLA-Trace/VLA-Trace"
-   rel="noreferrer"
-   target="_blank">
+<a class="btn" href="https://github.com/VLA-Trace/VLA-Trace" rel="noreferrer" target="_blank">
 
-<svg class="btn-icon github-icon" viewBox="0 0 16 16">
-<path fill="currentColor"
-d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38
+<svg class="btn-icon github-icon" viewbox="0 0 16 16">
+<path fill="currentColor" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38
 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13
 -.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66
 .07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95
@@ -788,46 +274,40 @@ d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38
 .44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15
 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48
 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8
-c0-4.42-3.58-8-8-8z"/>
+c0-4.42-3.58-8-8-8z"></path>
 </svg>
 
 GitHub
 </a>
 <a class="btn" href="#citation">✂️ BibTeX</a>
 </div>
-<div class="stats">
-</div>
-</div>
-<div class="hero-card">
-<img alt="Overview of the VLA-Trace framework" class="zoomable" src="img/overview0526_01.png" style="width:100%;height:100%;object-fit:cover;display:block;border:none;border-radius:0;padding:0;margin:0;"/>
-</div>
-</div>
+
 </section>
 <section id="motivation">
 <div class="section-head">
 <span class="kicker">Motivation</span>
 <h2>VLA models can act — but why do they act?</h2>
-<p>High success rates reveal what VLA models do, but not how they actually work.VLA-Trace bridges this gap through representation, control, and behavior tracing.</p>
+<p>High success rates reveal what VLA models do, but not how they actually work. VLA-Trace bridges this gap through representation, control, and behavior tracing.</p>
 </div>
 
 <div class="grid-2">
   <div class="problem">
     <div>
-      <span class="kicker" style="color:#93c5fd">The black-box gap</span>
-      <h2 style="font-size:34px;margin:8px 0 12px;color:white;">Success rate alone cannot explain failures.</h2>
+      <span class="kicker">The black-box gap</span>
+      <h3>Success rate alone cannot explain failures.</h3>
       <p>A policy may successfully imitate trajectories while still ignoring subtle language edits, relying on gripper geometry, or exploiting background layout. VLA-Trace links internal representations to causal pathways and then to rollout behavior.</p>
     </div>
     <div class="question-list">
       <div class="question">
-        <b>Q1 Representation 🧠</b>
+        <b>Q1 Representation</b>
         <span>Does robot adaptation reorganize pretrained multimodal representations?</span>
       </div>
       <div class="question">
-        <b>Q2 Control 🔀</b>
+        <b>Q2 Control</b>
         <span>Which modality actually drives action generation?</span>
       </div>
       <div class="question">
-        <b>Q3 Behavior 🤖</b>
+        <b>Q3 Behavior</b>
         <span>Do internal pathways explain grounded behavior?</span>
       </div>
     </div>
@@ -863,7 +343,7 @@ GitHub
 <p>VLA-Trace follows three model stages — C0 pretrained VLM, C1 pretrained VLA, and C2 task-finetuned VLA — and applies complementary probes from latent geometry to closed-loop rollout behavior.</p>
 </div>
 <div class="timeline">
-<div class="stage">
+<div class="stage s1">
 <a href="#s1-block" class="step-btn">S1</a>
 <div class="card">
 <span class="pill">Representation Shifts</span>
@@ -871,7 +351,7 @@ GitHub
 <p>Measure image–text alignment and whether visual, textual, and joint subspaces are preserved or reorganized across C0, C1, and C2.</p>
 </div>
 </div>
-<div class="stage">
+<div class="stage s2">
 <a href="#s2-block" class="step-btn">S2</a>
 <div class="card">
 <span class="pill green">Causal Pathways</span>
@@ -879,7 +359,7 @@ GitHub
 <p>Block selected token pathways during prefill or generation to test whether vision, language, structural prompt tokens, or action paths are necessary.</p>
 </div>
 </div>
-<div class="stage">
+<div class="stage s3">
 <a href="#s3-block" class="step-btn">S3</a>
 <div class="card">
 <span class="pill orange">Behavioral Probes</span>
@@ -888,9 +368,9 @@ GitHub
 </div>
 </div>
 </div>
-<div class="table-wrap" style="margin-top:24px;">
+<div class="table-wrap">
 <table class="probe-table">
-<thead><tr><th>Stage</th><th>Probe</th><th>Question</th><th>Benchmarks</th><th>Models</th></tr></thead>
+<thead><tr><th scope="col">Stage</th><th scope="col">Probe</th><th scope="col">Question</th><th scope="col">Benchmarks</th><th scope="col">Models</th></tr></thead>
 <tbody>
 <tr><td><b>S1</b></td><td>Cross Modal CKA</td><td>How strongly do image and text representations align?</td><td><span class="tag">LIBERO</span><span class="tag">COCO</span></td><td><span class="tag green">π0.5</span><span class="tag green">OpenVLA</span></td></tr>
 <tr><td><b>S1</b></td><td>Checkpoint Drift CKA</td><td>Which representation subspaces are preserved or rewritten?</td><td><span class="tag">LIBERO</span></td><td><span class="tag green">π0.5</span><span class="tag green">OpenVLA</span></td></tr>
@@ -904,481 +384,347 @@ GitHub
 
 <section id="results">
 <div class="section-head">
-<span class="kicker">Results carousel</span>
-<h2>Browse the experimental evidence as slides</h2>
-<p>The paper contains many diagnostic figures, so this page now uses carousels for fast browsing. Use the arrows, dots, thumbnails, or keyboard arrow keys; click any image to zoom in.</p>
+<span class="kicker">Experimental evidence</span>
+<h2>Explore the experimental evidence</h2>
+<p>Choose an experiment by name, inspect the original figure, and open its full details. Each result links back to the related findings.</p>
 </div>
 
 <div class="mini-carousel-grid">
 
-  <div id="s1-block" aria-label="Representation analysis carousel" class="carousel-shell compact" data-carousel="">
+  <div id="s1-block" aria-label="Representation shifts evidence" class="carousel-shell s1" data-carousel="" role="region">
       <div class="carousel-topline compact-head">
         <div>
-          <span class="pill purple">S1</span>
-          <h3>Representation Shifts → <a href="#finding1" class="btn-small-evidence btn-finding-large" style="background:#f5f3ff; color:#7c3aed; border-color:#e5e7eb;">Finding 1~2</a></h3>
-        </div>
+          <span class="pill">S1</span>
+          <h3>Representation shifts</h3></div>
         <div class="carousel-controls">
-          <button class="carousel-btn" data-prev="">‹</button>
-          <button class="carousel-btn" data-next="">›</button>
+          <button class="carousel-btn" data-prev="" type="button" aria-label="Previous experiment">‹</button>
+          <button class="carousel-btn" data-next="" type="button" aria-label="Next experiment">›</button>
         </div>
       </div>
-      <div class="carousel-viewport compact-view">
-        <div class="carousel-slide active" data-slide-index="0">
+      <label class="evidence-picker" for="s1-select">Choose an experiment<select data-evidence-select="" id="s1-select"><option value="evidence-s1-1">Figure 2 · Cross-modal representation dynamics</option><option value="evidence-s1-2">Figure 3 · Checkpoint-drift representation preservation</option></select></label><div class="carousel-viewport compact-view">
+        <div class="carousel-slide active" data-slide-index="0" id="evidence-s1-1">
           <div class="slide-media">
-            <img class="zoomable" src="img2/s1-1.png" alt="Layer-wise image-text CKA">
-          </div>
+            <button type="button" class="figure-open" aria-label="Open full figure: Figure 2 · Cross-modal representation dynamics"><img class="zoomable" src="img2/s1-1.png" alt="Figure 2 · Cross-modal representation dynamics" loading="lazy" decoding="async" width="1280" height="574">
+          <span class="figure-hint">Open full figure ↗</span></button></div>
           <div class="slide-copy">
-            <span class="slide-stage">S1 · CKA</span>
+            <span class="slide-stage">S1 · Figure 2</span>
             <h3>Cross-modal representation dynamics</h3>
-            <p>Figure 2: Layer-wise image–text CKA across datasets and training stages. The panels compare cross-modal alignment for π0.5 and OpenVLA. Each curve denotes one checkpoint: C0, the pretrained VLM; C1, the pretrained VLA; and C2, the task-finetuned VLA.</p>
+            <p>Image–text alignment across layers and model checkpoints.</p><details class="caption-details"><summary>Experiment details</summary><p>Figure 2: Layer-wise image–text CKA across datasets and training stages. The panels compare cross-modal alignment for π0.5 and OpenVLA. Each curve denotes one checkpoint: C0, the pretrained VLM; C1, the pretrained VLA; and C2, the task-finetuned VLA.</p>
             
-            <div style="margin-top:20px; display:flex; gap:10px; flex-wrap:wrap;">
-              <a href="#finding1" class="btn-small-evidence" style="background:#f5f3ff; color:#7c3aed; border-color:#e5e7eb;">Back to Finding 1~2</a>
-              <a href="#findings" class="btn-small-evidence" style="background:#f5f3ff; color:#7c3aed; border-color:#e5e7eb;">All findings</a>
-            </div>
-          </div>
+            </details><div class="evidence-links"><a href="#finding1" class="btn-small-evidence">Back to Finding 1</a><a href="#findings" class="btn-small-evidence">All findings</a></div></div>
         </div>
-        <div class="carousel-slide" data-slide-index="1">
-          <div class="slide-media">
-            <img class="zoomable" src="img2/s1-2.png" alt="Checkpoint drift CKA heatmaps">
-          </div>
+        <div class="carousel-slide" data-slide-index="1" id="evidence-s1-2" hidden="">
+          <div class="slide-media portrait">
+            <button type="button" class="figure-open" aria-label="Open full figure: Figure 3 · Checkpoint-drift representation preservation"><img class="zoomable" src="img2/s1-2.png" alt="Figure 3 · Checkpoint-drift representation preservation" loading="lazy" decoding="async" width="672" height="677">
+          <span class="figure-hint">Open full figure ↗</span></button></div>
           <div class="slide-copy">
-            <span class="slide-stage">S1 · Drift CKA</span>
+            <span class="slide-stage">S1 · Figure 3</span>
             <h3>Checkpoint-drift representation preservation</h3>
-            <p>Figure 3: Stage-wise checkpoint-drift CKA for π0.5 and OpenVLA. Each cell reports the mean matched-layer CKA for vision, text, and joint representations.</p>
+            <p>Changes in visual, textual, and joint representations across checkpoints.</p><details class="caption-details"><summary>Experiment details</summary><p>Figure 3: Stage-wise checkpoint-drift CKA for π0.5 and OpenVLA. Each cell reports the mean matched-layer CKA for vision, text, and joint representations.</p>
             
-            <div style="margin-top:20px; display:flex; gap:10px; flex-wrap:wrap;">
-              <a href="#finding1" class="btn-small-evidence" style="background:#f5f3ff; color:#7c3aed; border-color:#e5e7eb;">Back to Finding 1~2</a>
-              <a href="#findings" class="btn-small-evidence" style="background:#f5f3ff; color:#7c3aed; border-color:#e5e7eb;">All findings</a>
-            </div>
-          </div>
+            </details><div class="evidence-links"><a href="#finding1" class="btn-small-evidence">Back to Finding 1</a><a href="#findings" class="btn-small-evidence">All findings</a></div></div>
         </div>
       </div>
       <div class="carousel-footer">
-        <div class="carousel-dots">
-          <button class="carousel-dot active" data-dot="0"></button>
-          <button class="carousel-dot" data-dot="1"></button>
-        </div>
-        <div class="slide-counter">
+        <div class="slide-counter" aria-live="polite">
           <span data-current="">1</span> / <span data-total="">2</span>
         </div>
       </div>
     </div>
 
-  <div id="s2-block" aria-label="Causal analysis carousel" class="carousel-shell compact" data-carousel="">
+  <div id="s2-block" aria-label="Causal pathways evidence" class="carousel-shell s2" data-carousel="" role="region">
     <div class="carousel-topline compact-head">
       <div>
-        <span class="pill green">S2</span>
-        <h3>Causal Pathways → <a href="#finding3" class="btn-small-evidence btn-finding-large" style="background:#ecfdf5; color:#16a34a; border-color:#dcfce7;">Finding 3~4</a></h3>
-      </div>
+        <span class="pill">S2</span>
+        <h3>Causal pathways</h3></div>
       <div class="carousel-controls">
-        <button class="carousel-btn" data-prev="">‹</button>
-        <button class="carousel-btn" data-next="">›</button>
+        <button class="carousel-btn" data-prev="" type="button" aria-label="Previous experiment">‹</button>
+        <button class="carousel-btn" data-next="" type="button" aria-label="Next experiment">›</button>
       </div>
     </div>
-    <div class="carousel-viewport compact-view">
-      <div class="carousel-slide active" data-slide-index="0">
+    <label class="evidence-picker" for="s2-select">Choose an experiment<select data-evidence-select="" id="s2-select"><option value="evidence-s2-1">Table 6 · All-layer attention knockout experiment</option><option value="evidence-s2-2">Figure 11 · OpenVLA-OFT · LIBERO · 3-layer knockout</option><option value="evidence-s2-3">Figure 12 · OpenVLA-OFT · LIBERO · 5-layer knockout</option><option value="evidence-s2-4">Figure 13 · OpenVLA-OFT · LIBERO · 7-layer knockout</option><option value="evidence-s2-5">Figure 9 · OpenVLA · LIBERO · 3-layer knockout</option><option value="evidence-s2-6">Figure 10 · OpenVLA · LIBERO · 7-layer knockout</option><option value="evidence-s2-7">Figure 6 · π0.5 · LIBERO · 3-layer knockout</option><option value="evidence-s2-8">Figure 7 · π0.5 · LIBERO · 5-layer knockout</option><option value="evidence-s2-9">Figure 8 · π0.5 · LIBERO · 7-layer knockout</option><option value="evidence-s2-10">Figure 14 · OpenVLA-OFT · RoboTwin · 1-layer knockout</option><option value="evidence-s2-11">Figure 15 · OpenVLA-OFT · RoboTwin · 3-layer knockout</option></select></label><div class="carousel-viewport compact-view">
+      <div class="carousel-slide active is-table" data-slide-index="0" id="evidence-s2-1">
         <div class="slide-media">
-          <img class="zoomable" src="img2/s2-1.png" alt="Layer-wise attention knockout results">
-        </div>
+          <button type="button" class="figure-open" aria-label="Open full figure: Table 6 · All-layer attention knockout experiment"><img class="zoomable" src="img2/s2-1.png" alt="Table 6 · All-layer attention knockout experiment" loading="lazy" decoding="async" width="2334" height="1098">
+        <span class="figure-hint">Open full figure ↗</span></button></div>
         <div class="slide-copy">
-          <span class="slide-stage">S2 · Knockout</span>
+          <span class="slide-stage">S2 · Table 6</span>
           <h3>All-layer attention knockout experiment</h3>
-          <p>Table 6: All-layer attention knockout results across LIBERO suites. Each cell reports success rate (%) and the absolute change relative to the suite-specific all-layer baseline in parentheses. For π0.5, Prefill blocks V–L attention; for OpenVLA, Prefill removes image access. Comb. combines the corresponding prefill intervention with the specified generation-stage intervention.</p>
+          <p>Success rates under all-layer prefill and generation interventions.</p><details class="caption-details"><summary>Experiment details</summary><p>Table 6: All-layer attention knockout results across LIBERO suites. Each cell reports success rate (%) and the absolute change relative to the suite-specific all-layer baseline in parentheses. For π0.5, Prefill blocks V–L attention; for OpenVLA, Prefill removes image access. Comb. combines the corresponding prefill intervention with the specified generation-stage intervention.</p>
           
-          <div style="margin-top:20px; display:flex; gap:10px; flex-wrap:wrap;">
-            <a href="#finding3" class="btn-small-evidence" style="background:#ecfdf5; color:#16a34a; border-color:#dcfce7;">Back to Finding 3~4</a>
-            <a href="#findings" class="btn-small-evidence" style="background:#ecfdf5; color:#16a34a; border-color:#dcfce7;">All findings</a>
-          </div>
-        </div>
+          </details><div class="evidence-links"><a href="#finding2" class="btn-small-evidence">Back to Finding 2</a><a href="#findings" class="btn-small-evidence">All findings</a></div></div>
       </div>
-      <div class="carousel-slide" data-slide-index="1">
+      <div class="carousel-slide" data-slide-index="1" id="evidence-s2-2" hidden="">
         <div class="slide-media">
-          <img class="zoomable" src="img2/s2-2.png" alt="Layer-wise attention knockout results">
-        </div>
+          <button type="button" class="figure-open" aria-label="Open full figure: Figure 11 · OpenVLA-OFT · LIBERO · 3-layer knockout"><img class="zoomable" src="img2/s2-2.png" alt="Figure 11 · OpenVLA-OFT · LIBERO · 3-layer knockout" loading="lazy" decoding="async" width="1280" height="567">
+        <span class="figure-hint">Open full figure ↗</span></button></div>
         <div class="slide-copy">
-          <span class="slide-stage">S2 · Knockout</span>
-          <h3>OpenVLA-OFT LIBERO layerwise experiment</h3>
-          <p>Figure 11: Layer-wise knockout results for OpenVLA-OFT on LIBERO-10, Goal, Object, and Spatial. Each point reports the success rate under a 3-layer knockout window centered at the indicated layer.</p>
+          <span class="slide-stage">S2 · Figure 11</span>
+          <h3>OpenVLA-OFT · LIBERO · 3-layer knockout</h3>
+          <p>Layer-wise success rates under 3-layer attention knockout.</p><details class="caption-details"><summary>Experiment details</summary><p>Figure 11: Layer-wise knockout results for OpenVLA-OFT on LIBERO-10, Goal, Object, and Spatial. Each point reports the success rate under a 3-layer knockout window centered at the indicated layer.</p>
           
-          <div style="margin-top:20px; display:flex; gap:10px; flex-wrap:wrap;">
-            <a href="#finding3" class="btn-small-evidence" style="background:#ecfdf5; color:#16a34a; border-color:#dcfce7;">Back to Finding 3~4</a>
-            <a href="#findings" class="btn-small-evidence" style="background:#ecfdf5; color:#16a34a; border-color:#dcfce7;">All findings</a>
-          </div>
-        </div>
+          </details><div class="evidence-links"><a href="#finding3" class="btn-small-evidence">Back to Finding 3</a><a href="#findings" class="btn-small-evidence">All findings</a></div></div>
       </div>
-      <div class="carousel-slide" data-slide-index="2">
+      <div class="carousel-slide" data-slide-index="2" id="evidence-s2-3" hidden="">
         <div class="slide-media">
-          <img class="zoomable" src="img2/s2-3.png" alt="Layer-wise attention knockout results">
-        </div>
+          <button type="button" class="figure-open" aria-label="Open full figure: Figure 12 · OpenVLA-OFT · LIBERO · 5-layer knockout"><img class="zoomable" src="img2/s2-3.png" alt="Figure 12 · OpenVLA-OFT · LIBERO · 5-layer knockout" loading="lazy" decoding="async" width="1280" height="567">
+        <span class="figure-hint">Open full figure ↗</span></button></div>
         <div class="slide-copy">
-          <span class="slide-stage">S2 · Knockout</span>
-          <h3>OpenVLA-OFT LIBERO layerwise experiment</h3>
-          <p>Figure 12: Layer-wise knockout results for OpenVLA-OFT on LIBERO-10, Goal, Object, and Spatial. Each point reports the success rate under a 5-layer knockout window centered at the indicated layer.</p>
+          <span class="slide-stage">S2 · Figure 12</span>
+          <h3>OpenVLA-OFT · LIBERO · 5-layer knockout</h3>
+          <p>Layer-wise success rates under 5-layer attention knockout.</p><details class="caption-details"><summary>Experiment details</summary><p>Figure 12: Layer-wise knockout results for OpenVLA-OFT on LIBERO-10, Goal, Object, and Spatial. Each point reports the success rate under a 5-layer knockout window centered at the indicated layer.</p>
           
-          <div style="margin-top:20px; display:flex; gap:10px; flex-wrap:wrap;">
-            <a href="#finding3" class="btn-small-evidence" style="background:#ecfdf5; color:#16a34a; border-color:#dcfce7;">Back to Finding 3~4</a>
-            <a href="#findings" class="btn-small-evidence" style="background:#ecfdf5; color:#16a34a; border-color:#dcfce7;">All findings</a>
-          </div>
-        </div>
+          </details><div class="evidence-links"><a href="#finding3" class="btn-small-evidence">Back to Finding 3</a><a href="#findings" class="btn-small-evidence">All findings</a></div></div>
       </div>
-      <div class="carousel-slide" data-slide-index="3">
+      <div class="carousel-slide" data-slide-index="3" id="evidence-s2-4" hidden="">
         <div class="slide-media">
-          <img class="zoomable" src="img2/s2-4.png" alt="Layer-wise attention knockout results">
-        </div>
+          <button type="button" class="figure-open" aria-label="Open full figure: Figure 13 · OpenVLA-OFT · LIBERO · 7-layer knockout"><img class="zoomable" src="img2/s2-4.png" alt="Figure 13 · OpenVLA-OFT · LIBERO · 7-layer knockout" loading="lazy" decoding="async" width="1280" height="567">
+        <span class="figure-hint">Open full figure ↗</span></button></div>
         <div class="slide-copy">
-          <span class="slide-stage">S2 · Knockout</span>
-          <h3>OpenVLA-OFT LIBERO layerwise experiment</h3>
-          <p>Figure 13: Layer-wise knockout results for OpenVLA-OFT on LIBERO-10, Goal, Object, and Spatial. Each point reports the success rate under a 7-layer knockout window centered at the indicated layer.</p>
+          <span class="slide-stage">S2 · Figure 13</span>
+          <h3>OpenVLA-OFT · LIBERO · 7-layer knockout</h3>
+          <p>Layer-wise success rates under 7-layer attention knockout.</p><details class="caption-details"><summary>Experiment details</summary><p>Figure 13: Layer-wise knockout results for OpenVLA-OFT on LIBERO-10, Goal, Object, and Spatial. Each point reports the success rate under a 7-layer knockout window centered at the indicated layer.</p>
           
-          <div style="margin-top:20px; display:flex; gap:10px; flex-wrap:wrap;">
-            <a href="#finding3" class="btn-small-evidence" style="background:#ecfdf5; color:#16a34a; border-color:#dcfce7;">Back to Finding 3~4</a>
-            <a href="#findings" class="btn-small-evidence" style="background:#ecfdf5; color:#16a34a; border-color:#dcfce7;">All findings</a>
-          </div>
-        </div>
+          </details><div class="evidence-links"><a href="#finding3" class="btn-small-evidence">Back to Finding 3</a><a href="#findings" class="btn-small-evidence">All findings</a></div></div>
       </div>
-      <div class="carousel-slide" data-slide-index="4">
+      <div class="carousel-slide" data-slide-index="4" id="evidence-s2-5" hidden="">
         <div class="slide-media">
-          <img class="zoomable" src="img2/s2-5.png" alt="Layer-wise attention knockout results">
-        </div>
+          <button type="button" class="figure-open" aria-label="Open full figure: Figure 9 · OpenVLA · LIBERO · 3-layer knockout"><img class="zoomable" src="img2/s2-5.png" alt="Figure 9 · OpenVLA · LIBERO · 3-layer knockout" loading="lazy" decoding="async" width="1280" height="642">
+        <span class="figure-hint">Open full figure ↗</span></button></div>
         <div class="slide-copy">
-          <span class="slide-stage">S2 · Knockout</span>
-          <h3>OpenVLA LIBERO layerwise experiment</h3>
-          <p>Figure 9: Layer-wise knockout results for OpenVLA on LIBERO-10, Goal, Object, and Spatial. Each point reports the success rate under a 3-layer knockout window centered at the indicated layer.</p>
+          <span class="slide-stage">S2 · Figure 9</span>
+          <h3>OpenVLA · LIBERO · 3-layer knockout</h3>
+          <p>Layer-wise success rates under 3-layer attention knockout.</p><details class="caption-details"><summary>Experiment details</summary><p>Figure 9: Layer-wise knockout results for OpenVLA on LIBERO-10, Goal, Object, and Spatial. Each point reports the success rate under a 3-layer knockout window centered at the indicated layer.</p>
           
-          <div style="margin-top:20px; display:flex; gap:10px; flex-wrap:wrap;">
-            <a href="#finding3" class="btn-small-evidence" style="background:#ecfdf5; color:#16a34a; border-color:#dcfce7;">Back to Finding 3~4</a>
-            <a href="#findings" class="btn-small-evidence" style="background:#ecfdf5; color:#16a34a; border-color:#dcfce7;">All findings</a>
-          </div>
-        </div>
+          </details><div class="evidence-links"><a href="#finding3" class="btn-small-evidence">Back to Finding 3</a><a href="#findings" class="btn-small-evidence">All findings</a></div></div>
       </div>
-      <div class="carousel-slide" data-slide-index="5">
+      <div class="carousel-slide" data-slide-index="5" id="evidence-s2-6" hidden="">
         <div class="slide-media">
-          <img class="zoomable" src="img2/s2-6.png" alt="Layer-wise attention knockout results">
-        </div>
+          <button type="button" class="figure-open" aria-label="Open full figure: Figure 10 · OpenVLA · LIBERO · 7-layer knockout"><img class="zoomable" src="img2/s2-6.png" alt="Figure 10 · OpenVLA · LIBERO · 7-layer knockout" loading="lazy" decoding="async" width="1280" height="642">
+        <span class="figure-hint">Open full figure ↗</span></button></div>
         <div class="slide-copy">
-          <span class="slide-stage">S2 · Knockout</span>
-          <h3>OpenVLA LIBERO layerwise experiment</h3>
-          <p>Figure 10: Layer-wise knockout results for OpenVLA on LIBERO-10, Goal, Object, and Spatial. Each point reports the success rate under a 7-layer knockout window centered at the indicated layer.</p>
+          <span class="slide-stage">S2 · Figure 10</span>
+          <h3>OpenVLA · LIBERO · 7-layer knockout</h3>
+          <p>Layer-wise success rates under 7-layer attention knockout.</p><details class="caption-details"><summary>Experiment details</summary><p>Figure 10: Layer-wise knockout results for OpenVLA on LIBERO-10, Goal, Object, and Spatial. Each point reports the success rate under a 7-layer knockout window centered at the indicated layer.</p>
           
-          <div style="margin-top:20px; display:flex; gap:10px; flex-wrap:wrap;">
-            <a href="#finding3" class="btn-small-evidence" style="background:#ecfdf5; color:#16a34a; border-color:#dcfce7;">Back to Finding 3~4</a>
-            <a href="#findings" class="btn-small-evidence" style="background:#ecfdf5; color:#16a34a; border-color:#dcfce7;">All findings</a>
-          </div>
-        </div>
+          </details><div class="evidence-links"><a href="#finding3" class="btn-small-evidence">Back to Finding 3</a><a href="#findings" class="btn-small-evidence">All findings</a></div></div>
       </div>
-      <div class="carousel-slide" data-slide-index="6">
+      <div class="carousel-slide" data-slide-index="6" id="evidence-s2-7" hidden="">
         <div class="slide-media">
-          <img class="zoomable" src="img2/s2-7.png" alt="Layer-wise attention knockout results">
-        </div>
+          <button type="button" class="figure-open" aria-label="Open full figure: Figure 6 · π0.5 · LIBERO · 3-layer knockout"><img class="zoomable" src="img2/s2-7.png" alt="Figure 6 · π0.5 · LIBERO · 3-layer knockout" loading="lazy" decoding="async" width="1280" height="567">
+        <span class="figure-hint">Open full figure ↗</span></button></div>
         <div class="slide-copy">
-          <span class="slide-stage">S2 · Knockout</span>
-          <h3>pi05 LIBERO</h3>
-          <p>Figure 6: Layer-wise knockout results for π0.5 on LIBERO-10, Goal, Object, and Spatial. Each point reports the success rate under a 3-layer knockout window centered at the indicated layer.</p>
+          <span class="slide-stage">S2 · Figure 6</span>
+          <h3>π0.5 · LIBERO · 3-layer knockout</h3>
+          <p>Layer-wise success rates under 3-layer attention knockout.</p><details class="caption-details"><summary>Experiment details</summary><p>Figure 6: Layer-wise knockout results for π0.5 on LIBERO-10, Goal, Object, and Spatial. Each point reports the success rate under a 3-layer knockout window centered at the indicated layer.</p>
           
-          <div style="margin-top:20px; display:flex; gap:10px; flex-wrap:wrap;">
-            <a href="#finding3" class="btn-small-evidence" style="background:#ecfdf5; color:#16a34a; border-color:#dcfce7;">Back to Finding 3~4</a>
-            <a href="#findings" class="btn-small-evidence" style="background:#ecfdf5; color:#16a34a; border-color:#dcfce7;">All findings</a>
-          </div>
-        </div>
+          </details><div class="evidence-links"><a href="#finding3" class="btn-small-evidence">Back to Finding 3</a><a href="#findings" class="btn-small-evidence">All findings</a></div></div>
       </div>
-      <div class="carousel-slide" data-slide-index="7">
+      <div class="carousel-slide" data-slide-index="7" id="evidence-s2-8" hidden="">
         <div class="slide-media">
-          <img class="zoomable" src="img2/s2-8.png" alt="Layer-wise attention knockout results">
-        </div>
+          <button type="button" class="figure-open" aria-label="Open full figure: Figure 7 · π0.5 · LIBERO · 5-layer knockout"><img class="zoomable" src="img2/s2-8.png" alt="Figure 7 · π0.5 · LIBERO · 5-layer knockout" loading="lazy" decoding="async" width="1280" height="567">
+        <span class="figure-hint">Open full figure ↗</span></button></div>
         <div class="slide-copy">
-          <span class="slide-stage">S2 · Knockout</span>
-          <h3>pi05 LIBERO</h3>
-          <p>Figure 7: Layer-wise knockout results for π0.5 on LIBERO-10, Goal, Object, and Spatial. Each point reports the success rate under a 5-layer knockout window centered at the indicated layer.</p>
+          <span class="slide-stage">S2 · Figure 7</span>
+          <h3>π0.5 · LIBERO · 5-layer knockout</h3>
+          <p>Layer-wise success rates under 5-layer attention knockout.</p><details class="caption-details"><summary>Experiment details</summary><p>Figure 7: Layer-wise knockout results for π0.5 on LIBERO-10, Goal, Object, and Spatial. Each point reports the success rate under a 5-layer knockout window centered at the indicated layer.</p>
           
-          <div style="margin-top:20px; display:flex; gap:10px; flex-wrap:wrap;">
-            <a href="#finding3" class="btn-small-evidence" style="background:#ecfdf5; color:#16a34a; border-color:#dcfce7;">Back to Finding 3~4</a>
-            <a href="#findings" class="btn-small-evidence" style="background:#ecfdf5; color:#16a34a; border-color:#dcfce7;">All findings</a>
-          </div>
-        </div>
+          </details><div class="evidence-links"><a href="#finding3" class="btn-small-evidence">Back to Finding 3</a><a href="#findings" class="btn-small-evidence">All findings</a></div></div>
       </div>
-      <div class="carousel-slide" data-slide-index="8">
+      <div class="carousel-slide" data-slide-index="8" id="evidence-s2-9" hidden="">
         <div class="slide-media">
-          <img class="zoomable" src="img2/s2-9.png" alt="Layer-wise attention knockout results">
-        </div>
+          <button type="button" class="figure-open" aria-label="Open full figure: Figure 8 · π0.5 · LIBERO · 7-layer knockout"><img class="zoomable" src="img2/s2-9.png" alt="Figure 8 · π0.5 · LIBERO · 7-layer knockout" loading="lazy" decoding="async" width="1280" height="567">
+        <span class="figure-hint">Open full figure ↗</span></button></div>
         <div class="slide-copy">
-          <span class="slide-stage">S2 · Knockout</span>
-          <h3>pi05 LIBERO</h3>
-          <p>Figure 8: Layer-wise knockout results for π0.5 on LIBERO-10, Goal, Object, and Spatial. Each point reports the success rate under a 7-layer knockout window centered at the indicated layer.</p>
+          <span class="slide-stage">S2 · Figure 8</span>
+          <h3>π0.5 · LIBERO · 7-layer knockout</h3>
+          <p>Layer-wise success rates under 7-layer attention knockout.</p><details class="caption-details"><summary>Experiment details</summary><p>Figure 8: Layer-wise knockout results for π0.5 on LIBERO-10, Goal, Object, and Spatial. Each point reports the success rate under a 7-layer knockout window centered at the indicated layer.</p>
           
-          <div style="margin-top:20px; display:flex; gap:10px; flex-wrap:wrap;">
-            <a href="#finding3" class="btn-small-evidence" style="background:#ecfdf5; color:#16a34a; border-color:#dcfce7;">Back to Finding 3~4</a>
-            <a href="#findings" class="btn-small-evidence" style="background:#ecfdf5; color:#16a34a; border-color:#dcfce7;">All findings</a>
-          </div>
-        </div>
+          </details><div class="evidence-links"><a href="#finding3" class="btn-small-evidence">Back to Finding 3</a><a href="#findings" class="btn-small-evidence">All findings</a></div></div>
       </div>
-      <div class="carousel-slide" data-slide-index="9">
+      <div class="carousel-slide" data-slide-index="9" id="evidence-s2-10" hidden="">
         <div class="slide-media">
-          <img class="zoomable" src="img2/s2-10.png" alt="Layer-wise attention knockout results">
-        </div>
+          <button type="button" class="figure-open" aria-label="Open full figure: Figure 14 · OpenVLA-OFT · RoboTwin · 1-layer knockout"><img class="zoomable" src="img2/s2-10.png" alt="Figure 14 · OpenVLA-OFT · RoboTwin · 1-layer knockout" loading="lazy" decoding="async" width="1280" height="693">
+        <span class="figure-hint">Open full figure ↗</span></button></div>
         <div class="slide-copy">
-          <span class="slide-stage">S2 · Knockout</span>
-          <h3>OpenVLA-OFT RoboTwin</h3>
-          <p>Figure 14: Layer-wise knockout results for OpenVLA-OFT on RoboTwin tasks. Each row corresponds to one RoboTwin task, and each point reports the success rate under a 1-layer knockout window at the indicated layer.</p>
+          <span class="slide-stage">S2 · Figure 14</span>
+          <h3>OpenVLA-OFT · RoboTwin · 1-layer knockout</h3>
+          <p>Layer-wise success rates under 1-layer attention knockout.</p><details class="caption-details"><summary>Experiment details</summary><p>Figure 14: Layer-wise knockout results for OpenVLA-OFT on RoboTwin tasks. Each row corresponds to one RoboTwin task, and each point reports the success rate under a 1-layer knockout window at the indicated layer.</p>
           
-          <div style="margin-top:20px; display:flex; gap:10px; flex-wrap:wrap;">
-            <a href="#finding3" class="btn-small-evidence" style="background:#ecfdf5; color:#16a34a; border-color:#dcfce7;">Back to Finding 3~4</a>
-            <a href="#findings" class="btn-small-evidence" style="background:#ecfdf5; color:#16a34a; border-color:#dcfce7;">All findings</a>
-          </div>
-        </div>
+          </details><div class="evidence-links"><a href="#finding3" class="btn-small-evidence">Back to Finding 3</a><a href="#findings" class="btn-small-evidence">All findings</a></div></div>
       </div>
-      <div class="carousel-slide" data-slide-index="10">
+      <div class="carousel-slide" data-slide-index="10" id="evidence-s2-11" hidden="">
         <div class="slide-media">
-          <img class="zoomable" src="img2/s2-11.png" alt="Layer-wise attention knockout results">
-        </div>
+          <button type="button" class="figure-open" aria-label="Open full figure: Figure 15 · OpenVLA-OFT · RoboTwin · 3-layer knockout"><img class="zoomable" src="img2/s2-11.png" alt="Figure 15 · OpenVLA-OFT · RoboTwin · 3-layer knockout" loading="lazy" decoding="async" width="1280" height="693">
+        <span class="figure-hint">Open full figure ↗</span></button></div>
         <div class="slide-copy">
-          <span class="slide-stage">S2 · Knockout</span>
-          <h3>OpenVLA-OFT RoboTwin</h3>
-          <p>Figure 15: Layer-wise knockout results for OpenVLA-OFT on RoboTwin tasks. Each row corresponds to one RoboTwin task, and each point reports the success rate under a 3-layer knockout window at the indicated layer.</p>
+          <span class="slide-stage">S2 · Figure 15</span>
+          <h3>OpenVLA-OFT · RoboTwin · 3-layer knockout</h3>
+          <p>Layer-wise success rates under 3-layer attention knockout.</p><details class="caption-details"><summary>Experiment details</summary><p>Figure 15: Layer-wise knockout results for OpenVLA-OFT on RoboTwin tasks. Each row corresponds to one RoboTwin task, and each point reports the success rate under a 3-layer knockout window at the indicated layer.</p>
           
-          <div style="margin-top:20px; display:flex; gap:10px; flex-wrap:wrap;">
-            <a href="#finding3" class="btn-small-evidence" style="background:#ecfdf5; color:#16a34a; border-color:#dcfce7;">Back to Finding 3~4</a>
-            <a href="#findings" class="btn-small-evidence" style="background:#ecfdf5; color:#16a34a; border-color:#dcfce7;">All findings</a>
-          </div>
-        </div>
+          </details><div class="evidence-links"><a href="#finding3" class="btn-small-evidence">Back to Finding 3</a><a href="#findings" class="btn-small-evidence">All findings</a></div></div>
       </div>
     </div>
     <div class="carousel-footer">
-      <div class="carousel-dots">
-        <button class="carousel-dot active" data-dot="0"></button>
-        <button class="carousel-dot" data-dot="1"></button>
-        <button class="carousel-dot" data-dot="2"></button>
-        <button class="carousel-dot" data-dot="3"></button>
-        <button class="carousel-dot" data-dot="4"></button>
-        <button class="carousel-dot" data-dot="5"></button>
-        <button class="carousel-dot" data-dot="6"></button>
-        <button class="carousel-dot" data-dot="7"></button>
-        <button class="carousel-dot" data-dot="8"></button>
-        <button class="carousel-dot" data-dot="9"></button>
-        <button class="carousel-dot" data-dot="10"></button>
-      </div>
-      <div class="slide-counter">
+      <div class="slide-counter" aria-live="polite">
         <span data-current="">1</span> / <span data-total="">11</span>
       </div>
     </div>
   </div>
 
-  <div id="s3-block" aria-label="Behavior analysis carousel" class="carousel-shell compact" data-carousel="">
+  <div id="s3-block" aria-label="Behavioral probes evidence" class="carousel-shell s3" data-carousel="" role="region">
   <div class="carousel-topline compact-head">
     <div>
-      <span class="pill orange">S3</span>
-      <h3>Behavioral Probes → <a href="#finding5" class="btn-small-evidence btn-finding-large" style="background:#fff7ed; color:#f97316; border-color:#fed7aa;">Finding 5~7</a></h3>
-    </div>
+      <span class="pill">S3</span>
+      <h3>Behavioral probes</h3></div>
     <div class="carousel-controls">
-      <button class="carousel-btn" data-prev="">‹</button>
-      <button class="carousel-btn" data-next="">›</button>
+      <button class="carousel-btn" data-prev="" type="button" aria-label="Previous experiment">‹</button>
+      <button class="carousel-btn" data-next="" type="button" aria-label="Next experiment">›</button>
     </div>
   </div>
-  <div class="carousel-viewport compact-view">
+  <label class="evidence-picker" for="s3-select">Choose an experiment<select data-evidence-select="" id="s3-select"><option value="evidence-s3-1">Figure 22 · Attention IOU experiment</option><option value="evidence-s3-2">Figure 16 · Attention IOU Schematic</option><option value="evidence-s3-3">Figure 17 · Action-to-Image Attention</option><option value="evidence-s3-4">Figure 18 · Text-to-Image Attention to Pi05</option><option value="evidence-s3-5">Figure 19 · Text-to-Image Attention to OpenVLA</option><option value="evidence-s3-6">Table 7 · LIBERO-10 Masking Performance</option><option value="evidence-s3-7">Table 8 · LIBERO-Object Masking Performance</option><option value="evidence-s3-8">Table 9 · LIBERO-Spatial Masking Performance</option><option value="evidence-s3-9">Table 10 · LIBERO-Goal Masking Performance</option><option value="evidence-s3-10">Table 11 · Simpler Environment Masking</option><option value="evidence-s3-11">Table 13 · LIBERO-10 Attention Grounding</option><option value="evidence-s3-12">Table 5 · LIBERO-10 Text Editing</option></select></label><div class="carousel-viewport compact-view">
 
-    <div class="carousel-slide" data-slide-index="0">
+    <div class="carousel-slide" data-slide-index="0" id="evidence-s3-1">
       <div class="slide-media">
-        <img class="zoomable" src="img2/s3-1.png" alt="Attention IoU and mass over rollout phases">
-      </div>
+        <button type="button" class="figure-open" aria-label="Open full figure: Figure 22 · Attention IOU experiment"><img class="zoomable" src="img2/s3-1.png" alt="Figure 22 · Attention IOU experiment" loading="lazy" decoding="async" width="1162" height="610">
+      <span class="figure-hint">Open full figure ↗</span></button></div>
       <div class="slide-copy">
-        <span class="slide-stage">S3 · Attention IoU And Patterns</span>
+        <span class="slide-stage">S3 · Figure 22</span>
         <h3>Attention IOU experiment</h3>
-        <p>Figure 22: OpenVLA attention IoU and mass on LIBERO-10. (a) Object IoU dynamically shifts between the first (Phase 1) and second (Phase 2) instruction subgoals. (b) Attention mass allocation over robot and object regions. These results indicate that VLA policies successfully generate visually grounded trajectories by tracking task-relevant objects over time.</p>
+        <p>Object attention IoU and attention mass over rollout phases.</p><details class="caption-details"><summary>Experiment details</summary><p>Figure 22: OpenVLA attention IoU and mass on LIBERO-10. (a) Object IoU dynamically shifts between the first (Phase 1) and second (Phase 2) instruction subgoals. (b) Attention mass allocation over robot and object regions. These results indicate that VLA policies successfully generate visually grounded trajectories by tracking task-relevant objects over time.</p>
         
-        <div style="margin-top:20px; display:flex; gap:10px; flex-wrap:wrap;">
-          <a href="#finding5" class="btn-small-evidence" style="background:#fff7ed; color:#f97316; border-color:#fed7aa;">Back to Finding 5~7</a>
-          <a href="#findings" class="btn-small-evidence" style="background:#fff7ed; color:#f97316; border-color:#fed7aa;">All findings</a>
-        </div>
-      </div>
+        </details><div class="evidence-links"><a href="#finding4" class="btn-small-evidence">Back to Finding 4</a><a href="#findings" class="btn-small-evidence">All findings</a></div></div>
     </div>
 
-    <div class="carousel-slide" data-slide-index="1">
-      <div class="slide-media">
-        <img class="zoomable" src="img2/s3-2.png" alt="Patch masking ablation">
-      </div>
+    <div class="carousel-slide" data-slide-index="1" id="evidence-s3-2" hidden="">
+      <div class="slide-media portrait">
+        <button type="button" class="figure-open" aria-label="Open full figure: Figure 16 · Attention IOU Schematic"><img class="zoomable" src="img2/s3-2.png" alt="Figure 16 · Attention IOU Schematic" loading="lazy" decoding="async" width="931" height="1280">
+      <span class="figure-hint">Open full figure ↗</span></button></div>
       <div class="slide-copy">
-        <span class="slide-stage">S3 · Attention IoU And Patterns</span>
+        <span class="slide-stage">S3 · Figure 16</span>
         <h3>Attention IOU Schematic</h3>
-        <p>Figure 16: Schematic illustration of attention-IoU computation. We project action-conditioned attention onto the image patch grid, keep the top 10% highest-attention patches, and compute IoU against a simulator-derived target mask. The same mask is also used to compute continuous attention mass and peak-hit rate.</p>
+        <p>Regions and masks used to measure attention overlap.</p><details class="caption-details"><summary>Experiment details</summary><p>Figure 16: Schematic illustration of attention-IoU computation. We project action-conditioned attention onto the image patch grid, keep the top 10% highest-attention patches, and compute IoU against a simulator-derived target mask. The same mask is also used to compute continuous attention mass and peak-hit rate.</p>
         
-        <div style="margin-top:20px; display:flex; gap:10px; flex-wrap:wrap;">
-          <a href="#finding5" class="btn-small-evidence" style="background:#fff7ed; color:#f97316; border-color:#fed7aa;">Back to Finding 5~7</a>
-          <a href="#findings" class="btn-small-evidence" style="background:#fff7ed; color:#f97316; border-color:#fed7aa;">All findings</a>
-        </div>
-      </div>
+        </details><div class="evidence-links"><a href="#finding4" class="btn-small-evidence">Back to Finding 4</a><a href="#findings" class="btn-small-evidence">All findings</a></div></div>
     </div>
 
-    <div class="carousel-slide" data-slide-index="2">
-      <div class="slide-media">
-        <img class="zoomable" src="img2/s3-3.png" alt="Instruction input editing">
-      </div>
+    <div class="carousel-slide" data-slide-index="2" id="evidence-s3-3" hidden="">
+      <div class="slide-media portrait">
+        <button type="button" class="figure-open" aria-label="Open full figure: Figure 17 · Action-to-Image Attention"><img class="zoomable" src="img2/s3-3.png" alt="Figure 17 · Action-to-Image Attention" loading="lazy" decoding="async" width="993" height="1280">
+      <span class="figure-hint">Open full figure ↗</span></button></div>
       <div class="slide-copy">
-        <span class="slide-stage">S3 · Action to Image Attention</span>
+        <span class="slide-stage">S3 · Figure 17</span>
         <h3>Action-to-Image Attention</h3>
-        <p>Figure 17: Qualitative action-to-image attention visualizations across rollout stages. We compare pretrained and fine-tuned π0.5 and OpenVLA models across early, middle, and final execution stages. Finetuning shifts action attention from diffuse or background-biased regions toward task-relevant robot-object interaction regions, indicating stronger visually grounded action generation during manipulation.</p>
+        <p>Action-to-image attention before and after fine-tuning.</p><details class="caption-details"><summary>Experiment details</summary><p>Figure 17: Qualitative action-to-image attention visualizations across rollout stages. We compare pretrained and fine-tuned π0.5 and OpenVLA models across early, middle, and final execution stages. Finetuning shifts action attention from diffuse or background-biased regions toward task-relevant robot-object interaction regions, indicating stronger visually grounded action generation during manipulation.</p>
         
-        <div style="margin-top:20px; display:flex; gap:10px; flex-wrap:wrap;">
-          <a href="#finding5" class="btn-small-evidence" style="background:#fff7ed; color:#f97316; border-color:#fed7aa;">Back to Finding 5~7</a>
-          <a href="#findings" class="btn-small-evidence" style="background:#fff7ed; color:#f97316; border-color:#fed7aa;">All findings</a>
-        </div>
-      </div>
+        </details><div class="evidence-links"><a href="#finding4" class="btn-small-evidence">Back to Finding 4</a><a href="#findings" class="btn-small-evidence">All findings</a></div></div>
     </div>
 
-    <div class="carousel-slide" data-slide-index="3">
-      <div class="slide-media">
-        <img class="zoomable" src="img2/s3-4.png" alt="">
-      </div>
+    <div class="carousel-slide" data-slide-index="3" id="evidence-s3-4" hidden="">
+      <div class="slide-media portrait">
+        <button type="button" class="figure-open" aria-label="Open full figure: Figure 18 · Text-to-Image Attention to Pi05"><img class="zoomable" src="img2/s3-4.png" alt="Figure 18 · Text-to-Image Attention to Pi05" loading="lazy" decoding="async" width="635" height="935">
+      <span class="figure-hint">Open full figure ↗</span></button></div>
       <div class="slide-copy">
-        <span class="slide-stage">S3 · Text to Image Attention</span>
+        <span class="slide-stage">S3 · Figure 18</span>
         <h3>Text-to-Image Attention to Pi05</h3>
-        <p>Figure 18: Token-wise text-to-image attention for pretrained and fine-tuned π0.5 across execution steps. Columns correspond to instruction tokens, and rows compare checkpoints. Each heatmap shows how the selected text token attends to image patches.</p>
+        <p>Text-to-image attention across rollout stages.</p><details class="caption-details"><summary>Experiment details</summary><p>Figure 18: Token-wise text-to-image attention for pretrained and fine-tuned π0.5 across execution steps. Columns correspond to instruction tokens, and rows compare checkpoints. Each heatmap shows how the selected text token attends to image patches.</p>
         
-        <div style="margin-top:20px; display:flex; gap:10px; flex-wrap:wrap;">
-          <a href="#finding5" class="btn-small-evidence" style="background:#fff7ed; color:#f97316; border-color:#fed7aa;">Back to Finding 5~7</a>
-          <a href="#findings" class="btn-small-evidence" style="background:#fff7ed; color:#f97316; border-color:#fed7aa;">All findings</a>
-        </div>
-      </div>
+        </details><div class="evidence-links"><a href="#finding4" class="btn-small-evidence">Back to Finding 4</a><a href="#findings" class="btn-small-evidence">All findings</a></div></div>
     </div>
 
-    <div class="carousel-slide" data-slide-index="4">
-      <div class="slide-media">
-        <img class="zoomable" src="img2/s3-5.png" alt="">
-      </div>
+    <div class="carousel-slide" data-slide-index="4" id="evidence-s3-5" hidden="">
+      <div class="slide-media portrait">
+        <button type="button" class="figure-open" aria-label="Open full figure: Figure 19 · Text-to-Image Attention to OpenVLA"><img class="zoomable" src="img2/s3-5.png" alt="Figure 19 · Text-to-Image Attention to OpenVLA" loading="lazy" decoding="async" width="741" height="1051">
+      <span class="figure-hint">Open full figure ↗</span></button></div>
       <div class="slide-copy">
-        <span class="slide-stage">S3 · Text to Image Attention</span>
+        <span class="slide-stage">S3 · Figure 19</span>
         <h3>Text-to-Image Attention to OpenVLA</h3>
-        <p>Figure 19: Token-wise text-to-image attention for pretrained and fine-tuned OpenVLA across execution steps. Columns correspond to instruction tokens, and rows compare checkpoints. Each heatmap shows how the selected text token attends to image patches.</p>
+        <p>Text-to-image attention across rollout stages.</p><details class="caption-details"><summary>Experiment details</summary><p>Figure 19: Token-wise text-to-image attention for pretrained and fine-tuned OpenVLA across execution steps. Columns correspond to instruction tokens, and rows compare checkpoints. Each heatmap shows how the selected text token attends to image patches.</p>
         
-        <div style="margin-top:20px; display:flex; gap:10px; flex-wrap:wrap;">
-          <a href="#finding5" class="btn-small-evidence" style="background:#fff7ed; color:#f97316; border-color:#fed7aa;">Back to Finding 5~7</a>
-          <a href="#findings" class="btn-small-evidence" style="background:#fff7ed; color:#f97316; border-color:#fed7aa;">All findings</a>
-        </div>
-      </div>
+        </details><div class="evidence-links"><a href="#finding4" class="btn-small-evidence">Back to Finding 4</a><a href="#findings" class="btn-small-evidence">All findings</a></div></div>
     </div>
 
-    <div class="carousel-slide" data-slide-index="5">
-      <div class="slide-media">
-        <img class="zoomable" src="img2/s3-6.jpg" alt="">
-      </div>
+    <div class="carousel-slide is-table" data-slide-index="5" id="evidence-s3-6" hidden="">
+      <div class="slide-media portrait">
+        <button type="button" class="figure-open" aria-label="Open full figure: Table 7 · LIBERO-10 Masking Performance"><img class="zoomable" src="img2/s3-6.jpg" alt="Table 7 · LIBERO-10 Masking Performance" loading="lazy" decoding="async" width="1816" height="2442">
+      <span class="figure-hint">Open full figure ↗</span></button></div>
       <div class="slide-copy">
-        <span class="slide-stage">S3 · PATCH MASKING</span>
+        <span class="slide-stage">S3 · Table 7</span>
         <h3>LIBERO-10 Masking Performance</h3>
-        <p>Table 7: Success rates (%) across tasks and masking strategies on LIBERO-10 for π0.5, OpenVLA, OpenVLA-OFT and X-VLA. The instruction is provided in Tab. 15.</p>
+        <p>Task success under different visual masking strategies.</p><details class="caption-details"><summary>Experiment details</summary><p>Table 7: Success rates (%) across tasks and masking strategies on LIBERO-10 for π0.5, OpenVLA, OpenVLA-OFT and X-VLA. The instruction is provided in Tab. 15.</p>
         
-        <div style="margin-top:20px; display:flex; gap:10px; flex-wrap:wrap;">
-          <a href="#finding5" class="btn-small-evidence" style="background:#fff7ed; color:#f97316; border-color:#fed7aa;">Back to Finding 5~7</a>
-          <a href="#findings" class="btn-small-evidence" style="background:#fff7ed; color:#f97316; border-color:#fed7aa;">All findings</a>
-        </div>
-      </div>
+        </details><div class="evidence-links"><a href="#finding5" class="btn-small-evidence">Back to Finding 5</a><a href="#finding6" class="btn-small-evidence">Finding 6 · shortcuts</a><a href="#findings" class="btn-small-evidence">All findings</a></div></div>
     </div>
-    <div class="carousel-slide" data-slide-index="6">
-      <div class="slide-media">
-        <img class="zoomable" src="img2/s3-7.jpg" alt="">
-      </div>
+    <div class="carousel-slide is-table" data-slide-index="6" id="evidence-s3-7" hidden="">
+      <div class="slide-media portrait">
+        <button type="button" class="figure-open" aria-label="Open full figure: Table 8 · LIBERO-Object Masking Performance"><img class="zoomable" src="img2/s3-7.jpg" alt="Table 8 · LIBERO-Object Masking Performance" loading="lazy" decoding="async" width="1830" height="2444">
+      <span class="figure-hint">Open full figure ↗</span></button></div>
       <div class="slide-copy">
-        <span class="slide-stage">S3 · PATCH MASKING</span>
+        <span class="slide-stage">S3 · Table 8</span>
         <h3>LIBERO-Object Masking Performance</h3>
-        <p>Table 8: Success rates (%) across tasks and masking strategies on LIBERO-Object for π0.5, OpenVLA, OpenVLAOFT, and X-VLA. The instruction is provided in Tab. 15.</p>
+        <p>Task success under different visual masking strategies.</p><details class="caption-details"><summary>Experiment details</summary><p>Table 8: Success rates (%) across tasks and masking strategies on LIBERO-Object for π0.5, OpenVLA, OpenVLAOFT, and X-VLA. The instruction is provided in Tab. 15.</p>
         
-        <div style="margin-top:20px; display:flex; gap:10px; flex-wrap:wrap;">
-          <a href="#finding5" class="btn-small-evidence" style="background:#fff7ed; color:#f97316; border-color:#fed7aa;">Back to Finding 5~7</a>
-          <a href="#findings" class="btn-small-evidence" style="background:#fff7ed; color:#f97316; border-color:#fed7aa;">All findings</a>
-        </div>
-      </div>
+        </details><div class="evidence-links"><a href="#finding5" class="btn-small-evidence">Back to Finding 5</a><a href="#finding6" class="btn-small-evidence">Finding 6 · shortcuts</a><a href="#findings" class="btn-small-evidence">All findings</a></div></div>
     </div>
-    <div class="carousel-slide" data-slide-index="7">
-      <div class="slide-media">
-        <img class="zoomable" src="img2/s3-8.jpg" alt="">
-      </div>
+    <div class="carousel-slide is-table" data-slide-index="7" id="evidence-s3-8" hidden="">
+      <div class="slide-media portrait">
+        <button type="button" class="figure-open" aria-label="Open full figure: Table 9 · LIBERO-Spatial Masking Performance"><img class="zoomable" src="img2/s3-8.jpg" alt="Table 9 · LIBERO-Spatial Masking Performance" loading="lazy" decoding="async" width="1812" height="2432">
+      <span class="figure-hint">Open full figure ↗</span></button></div>
       <div class="slide-copy">
-        <span class="slide-stage">S3 · PATCH MASKING</span>
+        <span class="slide-stage">S3 · Table 9</span>
         <h3>LIBERO-Spatial Masking Performance</h3>
-        <p>Table 9: Success rates (%) across tasks and masking strategies on LIBERO-Spatial for π0.5, OpenVLA, OpenVLAOFT, and X-VLA. The instruction is provided in Tab. 15.</p>
+        <p>Task success under different visual masking strategies.</p><details class="caption-details"><summary>Experiment details</summary><p>Table 9: Success rates (%) across tasks and masking strategies on LIBERO-Spatial for π0.5, OpenVLA, OpenVLAOFT, and X-VLA. The instruction is provided in Tab. 15.</p>
         
-        <div style="margin-top:20px; display:flex; gap:10px; flex-wrap:wrap;">
-          <a href="#finding5" class="btn-small-evidence" style="background:#fff7ed; color:#f97316; border-color:#fed7aa;">Back to Finding 5~7</a>
-          <a href="#findings" class="btn-small-evidence" style="background:#fff7ed; color:#f97316; border-color:#fed7aa;">All findings</a>
-        </div>
-      </div>
+        </details><div class="evidence-links"><a href="#finding5" class="btn-small-evidence">Back to Finding 5</a><a href="#finding6" class="btn-small-evidence">Finding 6 · shortcuts</a><a href="#findings" class="btn-small-evidence">All findings</a></div></div>
     </div>
-    <div class="carousel-slide" data-slide-index="8">
-      <div class="slide-media">
-        <img class="zoomable" src="img2/s3-9.jpg" alt="">
-      </div>
+    <div class="carousel-slide is-table" data-slide-index="8" id="evidence-s3-9" hidden="">
+      <div class="slide-media portrait">
+        <button type="button" class="figure-open" aria-label="Open full figure: Table 10 · LIBERO-Goal Masking Performance"><img class="zoomable" src="img2/s3-9.jpg" alt="Table 10 · LIBERO-Goal Masking Performance" loading="lazy" decoding="async" width="1798" height="2440">
+      <span class="figure-hint">Open full figure ↗</span></button></div>
       <div class="slide-copy">
-        <span class="slide-stage">S3 · PATCH MASKING</span>
+        <span class="slide-stage">S3 · Table 10</span>
         <h3>LIBERO-Goal Masking Performance</h3>
-        <p>Table 10: Success rates (%) across tasks and masking strategies on LIBERO-Goal for π0.5, OpenVLA, OpenVLAOFT, X-VLA. The instruction is provided in Tab. 15.</p>
+        <p>Task success under different visual masking strategies.</p><details class="caption-details"><summary>Experiment details</summary><p>Table 10: Success rates (%) across tasks and masking strategies on LIBERO-Goal for π0.5, OpenVLA, OpenVLAOFT, X-VLA. The instruction is provided in Tab. 15.</p>
         
-        <div style="margin-top:20px; display:flex; gap:10px; flex-wrap:wrap;">
-          <a href="#finding5" class="btn-small-evidence" style="background:#fff7ed; color:#f97316; border-color:#fed7aa;">Back to Finding 5~7</a>
-          <a href="#findings" class="btn-small-evidence" style="background:#fff7ed; color:#f97316; border-color:#fed7aa;">All findings</a>
-        </div>
-      </div>
+        </details><div class="evidence-links"><a href="#finding5" class="btn-small-evidence">Back to Finding 5</a><a href="#finding6" class="btn-small-evidence">Finding 6 · shortcuts</a><a href="#findings" class="btn-small-evidence">All findings</a></div></div>
     </div>
-    <div class="carousel-slide" data-slide-index="9">
-      <div class="slide-media">
-        <img class="zoomable" src="img2/s3-10.jpg" alt="">
-      </div>
+    <div class="carousel-slide is-table" data-slide-index="9" id="evidence-s3-10" hidden="">
+      <div class="slide-media portrait">
+        <button type="button" class="figure-open" aria-label="Open full figure: Table 11 · Simpler Environment Masking"><img class="zoomable" src="img2/s3-10.jpg" alt="Table 11 · Simpler Environment Masking" loading="lazy" decoding="async" width="866" height="874">
+      <span class="figure-hint">Open full figure ↗</span></button></div>
       <div class="slide-copy">
-        <span class="slide-stage">S3 · PATCH MASKING</span>
+        <span class="slide-stage">S3 · Table 11</span>
         <h3>Simpler Environment Masking</h3>
-        <p>Table 11: Performance of X-VLA under different masking strategies on Simpler.</p>
+        <p>Task success under different visual masking strategies.</p><details class="caption-details"><summary>Experiment details</summary><p>Table 11: Performance of X-VLA under different masking strategies on Simpler.</p>
         
-        <div style="margin-top:20px; display:flex; gap:10px; flex-wrap:wrap;">
-          <a href="#finding5" class="btn-small-evidence" style="background:#fff7ed; color:#f97316; border-color:#fed7aa;">Back to Finding 5~7</a>
-          <a href="#findings" class="btn-small-evidence" style="background:#fff7ed; color:#f97316; border-color:#fed7aa;">All findings</a>
-        </div>
-      </div>
+        </details><div class="evidence-links"><a href="#finding5" class="btn-small-evidence">Back to Finding 5</a><a href="#finding6" class="btn-small-evidence">Finding 6 · shortcuts</a><a href="#findings" class="btn-small-evidence">All findings</a></div></div>
     </div>
-    <div class="carousel-slide" data-slide-index="10">
+    <div class="carousel-slide is-table" data-slide-index="10" id="evidence-s3-11" hidden="">
       <div class="slide-media">
-        <img class="zoomable" src="img2/s3-11.jpg" alt="">
-      </div>
+        <button type="button" class="figure-open" aria-label="Open full figure: Table 13 · LIBERO-10 Attention Grounding"><img class="zoomable" src="img2/s3-11.jpg" alt="Table 13 · LIBERO-10 Attention Grounding" loading="lazy" decoding="async" width="1342" height="920">
+      <span class="figure-hint">Open full figure ↗</span></button></div>
       <div class="slide-copy">
-        <span class="slide-stage">S3 · Grounding</span>
+        <span class="slide-stage">S3 · Table 13</span>
         <h3>LIBERO-10 Attention Grounding</h3>
-        <p>Table 13: LIBERO-10 attention grounding for gripper, robot arm, and object regions. All values are pooled over task-step samples. Gripper is the union of robot masks whose instance name contains “gripper”; Robot Arm is the union of the remaining robot masks; Object is the current subtask focus union. Full is recomputed over the full rollout using the union of both subtask focus sets.</p>
+        <p>Attention grounding across gripper, robot-arm, and object regions.</p><details class="caption-details"><summary>Experiment details</summary><p>Table 13: LIBERO-10 attention grounding for gripper, robot arm, and object regions. All values are pooled over task-step samples. Gripper is the union of robot masks whose instance name contains “gripper”; Robot Arm is the union of the remaining robot masks; Object is the current subtask focus union. Full is recomputed over the full rollout using the union of both subtask focus sets.</p>
         
-        <div style="margin-top:20px; display:flex; gap:10px; flex-wrap:wrap;">
-          <a href="#finding5" class="btn-small-evidence" style="background:#fff7ed; color:#f97316; border-color:#fed7aa;">Back to Finding 5~7</a>
-          <a href="#findings" class="btn-small-evidence" style="background:#fff7ed; color:#f97316; border-color:#fed7aa;">All findings</a>
-        </div>
-      </div>
+        </details><div class="evidence-links"><a href="#finding4" class="btn-small-evidence">Back to Finding 4</a><a href="#findings" class="btn-small-evidence">All findings</a></div></div>
     </div>
-    <div class="carousel-slide" data-slide-index="11">
+    <div class="carousel-slide is-table" data-slide-index="11" id="evidence-s3-12" hidden="">
       <div class="slide-media">
-        <img class="zoomable" src="img2/s3-12.jpg" alt="">
-      </div>
+        <button type="button" class="figure-open" aria-label="Open full figure: Table 5 · LIBERO-10 Text Editing"><img class="zoomable" src="img2/s3-12.jpg" alt="Table 5 · LIBERO-10 Text Editing" loading="lazy" decoding="async" width="1768" height="618">
+      <span class="figure-hint">Open full figure ↗</span></button></div>
       <div class="slide-copy">
-        <span class="slide-stage">S3 · INPUT EDITING</span>
+        <span class="slide-stage">S3 · Table 5</span>
         <h3>LIBERO-10 Text Editing</h3>
-        <p>Table 5: Success rate (%) comparison between original and edited prompts.</p>
+        <p>Success rates for original and edited instructions.</p><details class="caption-details"><summary>Experiment details</summary><p>Table 5: Success rate (%) comparison between original and edited prompts.</p>
         
-        <div style="margin-top:20px; display:flex; gap:10px; flex-wrap:wrap;">
-          <a href="#finding5" class="btn-small-evidence" style="background:#fff7ed; color:#f97316; border-color:#fed7aa;">Back to Finding 5~7</a>
-          <a href="#findings" class="btn-small-evidence" style="background:#fff7ed; color:#f97316; border-color:#fed7aa;">All findings</a>
-        </div>
-      </div>
+        </details><div class="evidence-links"><a href="#finding7" class="btn-small-evidence">Back to Finding 7</a><a href="#findings" class="btn-small-evidence">All findings</a></div></div>
     </div>
 
   </div>
   <div class="carousel-footer">
-    <div class="carousel-dots">
-      <button class="carousel-dot" data-dot="0"></button>
-      <button class="carousel-dot" data-dot="1"></button>
-      <button class="carousel-dot" data-dot="2"></button>
-      <button class="carousel-dot" data-dot="3"></button>
-      <button class="carousel-dot" data-dot="4"></button>
-      <button class="carousel-dot" data-dot="5"></button>
-      <button class="carousel-dot" data-dot="6"></button>
-      <button class="carousel-dot" data-dot="7"></button>
-      <button class="carousel-dot" data-dot="8"></button>
-      <button class="carousel-dot" data-dot="9"></button>
-      <button class="carousel-dot" data-dot="10"></button>
-      <button class="carousel-dot" data-dot="11"></button>
-    </div>
-    <div class="slide-counter">
+    <div class="slide-counter" aria-live="polite">
       <span data-current="">1</span> / <span data-total="">12</span>
     </div>
   </div>
@@ -1392,100 +738,42 @@ GitHub
 <h2>What VLA-Trace reveals</h2>
 <p>Our experimental findings suggest that the conclusion is not simply that “vision matters” or “language matters.” Instead, different VLA architectures preserve, route, and use multimodal information in distinct ways.</p>
 </div>
-<div class="stage-nav">
-  <div class="stage-card s1" style="height: 35px; padding: 0 18px; display: flex; align-items: center; justify-content: flex-start; gap: 12px;">
-    <div class="stage-badge" style="flex-shrink: 0;">S1</div>
-    <h4 style="margin:0; padding:0; font-size:16px; font-weight:800; color:var(--ink); line-height: 1.2; display: flex; align-items: center; justify-content: center; flex-grow: 1; height: 100%; text-align: center;">Representation trace</h4>
-  </div>
+<div class="findings grid-2">
 
-  <div class="stage-card s2" style="height: 35px; padding: 0 18px; display: flex; align-items: center; justify-content: flex-start; gap: 12px;">
-    <div class="stage-badge" style="flex-shrink: 0;">S2</div>
-    <h4 style="margin:0; padding:0; font-size:16px; font-weight:800; color:var(--ink); line-height: 1.2; display: flex; align-items: center; justify-content: center; flex-grow: 1; height: 100%; text-align: center;">Causal pathway trace</h4>
-  </div>
-
-  <div class="stage-card s3" style="height: 35px; padding: 0 18px; display: flex; align-items: center; justify-content: flex-start; gap: 12px;">
-    <div class="stage-badge" style="flex-shrink: 0;">S3</div>
-    <h4 style="margin:0; padding:0; font-size:16px; font-weight:800; color:var(--ink); line-height: 1.2; display: flex; align-items: center; justify-content: center; flex-grow: 1; height: 100%; text-align: center;">Behavior trace</h4>
-  </div>
-</div>
-<div class="findings grid-2" style="gap: 18px;">
-
-  <div class="card finding" id="finding1">
-    <h3 style="font-size: 24px;">Distinct adaptation dynamics</h3>
+  <article class="card finding s1" id="finding1" tabindex="-1">
+    <span class="stage-label">Finding 01 · S1</span><h3>Distinct adaptation dynamics</h3>
     <p>π0.5 and OpenVLA exhibit different modality-specific representation changes during VLA finetuning.</p>
-    <div style="margin-top:16px;">
-      <a href="#s1-block" style="display:inline-flex; align-items:center; gap:6px; font-size:13px; padding:4px 11px; border-radius:999px; border:1px solid #cbd5e1; background:transparent; color:#0f172a; font-weight:600; text-decoration:none;">
-        View S1 evidence <span style="margin-left:2px;">↗</span>
-      </a>
-    </div>
-    <p style="font-size:12px; color:var(--muted); margin:8px 0 0;">Related evidence: S1 · CKA.</p>
-  </div>
+    <div class="evidence-links"><a href="#evidence-s1-2" class="btn-small-evidence">View Figure 3 · Checkpoint drift ↗</a></div></article>
 
-  <div class="card finding" id="finding2">
-    <h2 style="font-size: 24px;">Different routing strategies</h2>
+  <article class="card finding s2" id="finding2" tabindex="-1">
+    <span class="stage-label">Finding 02 · S2</span><h3>Different routing strategies</h3>
     <p>π0.5 is dominated by a concentrated visual-to-action pathway, while OpenVLA relies more broadly on visual grounding and prompt-region access.</p>
-    <div style="margin-top:16px;">
-      <a href="#s1-block" style="display:inline-flex; align-items:center; gap:6px; font-size:13px; padding:4px 11px; border-radius:999px; border:1px solid #cbd5e1; background:transparent; color:#0f172a; font-weight:600; text-decoration:none;">
-        View S1 evidence <span style="margin-left:2px;">↗</span>
-      </a>
-    </div>
-    <p style="font-size:12px; color:var(--muted); margin:8px 0 0;">Related evidence: S1 · Drift CKA.</p>
-  </div>
+    <div class="evidence-links"><a href="#evidence-s2-1" class="btn-small-evidence">View Table 6 · Attention knockout ↗</a></div></article>
 
-  <div class="card finding" id="finding3">
-    <h2 style="font-size: 24px;">Layer dependency is not uniform</h2>
+  <article class="card finding s2" id="finding3" tabindex="-1">
+    <span class="stage-label">Finding 03 · S2</span><h3>Layer dependency is not uniform</h3>
     <p>Some dependencies concentrate in narrow bottlenecks; others are distributed across broader layer ranges. The appendix extends this with windowed sweeps.</p>
-    <div style="margin-top:16px;">
-      <a href="#s2-block" style="display:inline-flex; align-items:center; gap:6px; font-size:13px; padding:4px 11px; border-radius:999px; border:1px solid #cbd5e1; background:transparent; color:#0f172a; font-weight:600; text-decoration:none;">
-        View S2 evidence <span style="margin-left:2px;">↗</span>
-      </a>
-    </div>
-    <p style="font-size:12px; color:var(--muted); margin:8px 0 0;">Related evidence: S2 · Knockout.</p>
-  </div>
+    <div class="evidence-links"><a href="#evidence-s2-7" class="btn-small-evidence">View Figure 6 · π0.5 layer dependencies ↗</a><a href="#evidence-s2-5" class="btn-small-evidence">Compare OpenVLA · Figure 9 ↗</a></div></article>
 
-  <div class="card finding" id="finding4">
-    <h2 style="font-size: 24px;">Grounding is spatial and temporal</h2>
+  <article class="card finding s3" id="finding4" tabindex="-1">
+    <span class="stage-label">Finding 04 · S3</span><h3>Grounding is spatial and temporal</h3>
     <p>Action attention overlaps with robot-object interaction regions and shifts across the two phases of long-horizon LIBERO-10 tasks.</p>
-    <div style="margin-top:16px;">
-      <a href="#s2-block" style="display:inline-flex; align-items:center; gap:6px; font-size:13px; padding:4px 11px; border-radius:999px; border:1px solid #cbd5e1; background:transparent; color:#0f172a; font-weight:600; text-decoration:none;">
-        View S2 evidence <span style="margin-left:2px;">↗</span>
-      </a>
-    </div>
-    <p style="font-size:12px; color:var(--muted); margin:8px 0 0;">Related evidence: S2 · Knockout.</p>
-  </div>
+    <div class="evidence-links"><a href="#evidence-s3-1" class="btn-small-evidence">View Figure 22 · Spatial and temporal attention ↗</a></div></article>
 
-  <div class="card finding" id="finding5">
-    <h2 style="font-size: 24px;">Visual anchors are causal</h2>
+  <article class="card finding s3" id="finding5" tabindex="-1">
+    <span class="stage-label">Finding 05 · S3</span><h3>Visual anchors are causal</h3>
     <p>Target-object masking causes large drops, showing that attended target objects are not merely visualized but causally required for execution.</p>
-    <div style="margin-top:16px; display:flex; gap:8px; flex-wrap:wrap;">
-      <a href="#s3-block" style="display:inline-flex; align-items:center; gap:6px; font-size:13px; padding:4px 11px; border-radius:999px; border:1px solid #cbd5e1; background:transparent; color:#0f172a; font-weight:600; text-decoration:none;">
-        View S3 + table <span style="margin-left:2px;">↗</span>
-      </a>
-    </div>
-    <p style="font-size:12px; color:var(--muted); margin:8px 0 0;">Related evidence: S3 · Visual Patch Masking.</p>
-  </div>
+    <div class="evidence-links"><a href="#evidence-s3-6" class="btn-small-evidence">View Table 7 · Visual masking ↗</a></div></article>
 
-  <div class="card finding" id="finding6">
-    <h2 style="font-size: 24px;">Shortcut dependence is model-specific</h2>
+  <article class="card finding s3" id="finding6" tabindex="-1">
+    <span class="stage-label">Finding 06 · S3</span><h3>Shortcut dependence is model-specific</h3>
     <p>Gripper, robot body, and background perturbations expose different architecture-specific reliance patterns.</p>
-    <div style="margin-top:16px; display:flex; gap:8px; flex-wrap:wrap;">
-      <a href="#s3-block" style="display:inline-flex; align-items:center; gap:6px; font-size:13px; padding:4px 11px; border-radius:999px; border:1px solid #cbd5e1; background:transparent; color:#0f172a; font-weight:600; text-decoration:none;">
-        View S3 + table <span style="margin-left:2px;">↗</span>
-      </a>
-    </div>
-    <p style="font-size:12px; color:var(--muted); margin:8px 0 0;">Related evidence: S3 · Shortcut Probes.</p>
-  </div>
+    <div class="evidence-links"><a href="#evidence-s3-6" class="btn-small-evidence">View Table 7 · Model-specific masking ↗</a></div></article>
 
-  <div class="card finding" id="finding7">
-    <h2 style="font-size: 24px;">Semantic control remains partial</h2>
+  <article class="card finding s3" id="finding7" tabindex="-1">
+    <span class="stage-label">Finding 07 · S3</span><h3>Semantic control remains partial</h3>
     <p>Edited instructions do not always redirect behavior, suggesting a gap between visual grounding and compositional language-conditioned control.</p>
-    <div style="margin-top:16px; display:flex; gap:8px; flex-wrap:wrap;">
-      <a href="#s3-block" style="display:inline-flex; align-items:center; gap:6px; font-size:13px; padding:4px 11px; border-radius:999px; border:1px solid #cbd5e1; background:transparent; color:#0f172a; font-weight:600; text-decoration:none;">
-        View S3 + table <span style="margin-left:2px;">↗</span>
-      </a>
-    </div>
-    <p style="font-size:12px; color:var(--muted); margin:8px 0 0;">Related evidence: S3 · Input Editing.</p>
-  </div>
+    <div class="evidence-links"><a href="#evidence-s3-12" class="btn-small-evidence">View Table 5 · Instruction edits ↗</a></div></article>
 
 </div>
 </section>
@@ -1495,9 +783,9 @@ GitHub
 <h2>What this suggests for future VLA design</h2>
 </div>
 <div class="grid-3">
-<div class="card"><span class="pill">Representation</span><h3>Preserve semantic priors</h3><p>VLA training should balance adapting to robot control with preserving visual, language, and cross-modal semantic pathways.</p></div>
-<div class="card"><span class="pill green">Reasoning</span><h3>Enable reliable VLA routing</h3><p>Action generation depends on how visual and language information is routed through the model, not merely on its availability.</p></div>
-<div class="card"><span class="pill orange">Semantics</span><h3>Train for counterfactual control</h3><p>Semantic-edit objectives, object-swap interventions, and contrastive behavior supervision could make subtle instruction changes causally actionable.</p></div>
+<div class="card s1"><span class="pill">Representation</span><h3>Preserve semantic priors</h3><p>VLA training should balance adapting to robot control with preserving visual, language, and cross-modal semantic pathways.</p></div>
+<div class="card s2"><span class="pill green">Reasoning</span><h3>Enable reliable VLA routing</h3><p>Action generation depends on how visual and language information is routed through the model, not merely on its availability.</p></div>
+<div class="card s3"><span class="pill orange">Semantics</span><h3>Train for counterfactual control</h3><p>Semantic-edit objectives, object-swap interventions, and contrastive behavior supervision could make subtle instruction changes causally actionable.</p></div>
 </div>
 </section>
 <section id="citation">
@@ -1506,7 +794,7 @@ GitHub
 <h2>Citation</h2>
 <p>If you find this work useful, please cite the paper.</p>
 </div>
-<pre id="bibtex"><code>@misc{shi2026vlatracediagnosingvisionlanguageactionmodels,
+<div class="citation-panel"><div class="citation-toolbar"><button class="btn" id="copy-bibtex" type="button">Copy BibTeX</button><span id="copy-status" role="status" aria-live="polite"></span></div><pre><code id="bibtex">@misc{shi2026vlatracediagnosingvisionlanguageactionmodels,
   title={VLA-Trace: Diagnosing Vision-Language-Action Models through Representation and Behavior Tracing}, 
   author={Haoyuan Shi and Xiancong Ren and Yingji Zhang and Qinfan Zhang and Jiayu Hu and Haozhe Shan and Han Dong and Jinpeng Lu and Yinda Chen and Yi Zhang and Yong Dai and Xiaozhu Ju},
   year={2026},
@@ -1515,143 +803,136 @@ GitHub
   primaryClass={cs.AI},
   url={https://arxiv.org/abs/2605.30117},
 }</code></pre>
-</section>
-</main>
+</div></section>
+<footer class="page-footer"><span>VLA-Trace · Representation and behavior tracing</span><div><a href="https://arxiv.org/abs/2605.30117">Paper ↗</a><a href="https://github.com/VLA-Trace/VLA-Trace">Code ↗</a><a href="#top">Back to top ↑</a></div></footer></main>
 
-<div class="lightbox" id="lightbox" onclick="closeLightbox()">
-<span class="close">×</span>
-<img alt="Zoomed figure" id="lightbox-img" src=""/>
-</div>
-<script>
-  const lightbox = document.getElementById('lightbox');
-  const lightboxImg = document.getElementById('lightbox-img');
-
-  function bindZoomables() {
-    document.querySelectorAll('.zoomable').forEach(img => {
-      if (img.dataset.zoomBound) return;
-      img.dataset.zoomBound = 'true';
-      img.addEventListener('click', (event) => {
-        event.stopPropagation();
-        lightboxImg.src = img.src;
-        lightbox.closeLightbox;
-        lightbox.classList.add('active');
+<dialog id="figure-dialog" aria-label="Full-size research figure" aria-describedby="figure-caption"><div class="dialog-toolbar"><a id="figure-original" target="_blank" rel="noopener">Open original image ↗</a><button type="button" class="dialog-close" aria-label="Close figure">×</button></div><img id="figure-image" alt=""><p id="figure-caption"></p></dialog><script>(() => {
+  const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+  const evidence = new Map();
+  const setHash = id => {
+    if (location.hash !== `#${id}`) history.pushState(null, '', `#${id}`);
+  };
+  document.querySelectorAll('[data-carousel]').forEach(carousel => {
+    const slides = [...carousel.querySelectorAll('.carousel-slide')];
+    const select = carousel.querySelector('[data-evidence-select]');
+    const current = carousel.querySelector('[data-current]');
+    let index = 0;
+    function show(next) {
+      index = (next + slides.length) % slides.length;
+      const focusedSlide = document.activeElement.closest('.carousel-slide');
+      if (focusedSlide && carousel.contains(focusedSlide) && focusedSlide !== slides[index]) carousel.focus({preventScroll:true});
+      slides.forEach((slide,i) => {
+        slide.hidden = i !== index;
+        slide.classList.toggle('active', i === index);
       });
-    });
-  }
-
-  function closeLightbox() {
-    lightbox.classList.remove('active');
-    lightboxImg.src = '';
-  }
-
-  function initCarousels() {
-    document.querySelectorAll('[data-carousel]').forEach((carousel) => {
-      const slides = Array.from(carousel.querySelectorAll('.carousel-slide'));
-      const dots = Array.from(carousel.querySelectorAll('[data-dot]'));
-      const thumbs = Array.from(carousel.querySelectorAll('[data-thumb]'));
-      const current = carousel.querySelector('[data-current]');
-      const total = carousel.querySelector('[data-total]');
-      let index = 0;
-      if (total) total.textContent = slides.length;
-
-      function show(nextIndex) {
-        if (!slides.length) return;
-        index = (nextIndex + slides.length) % slides.length;
-        slides.forEach((slide, i) => slide.classList.toggle('active', i === index));
-        dots.forEach((dot, i) => dot.classList.toggle('active', i === index));
-        thumbs.forEach((thumb, i) => thumb.classList.toggle('active', i === index));
-        if (current) current.textContent = index + 1;
-      }
-
-      const prev = carousel.querySelector('[data-prev]');
-      const next = carousel.querySelector('[data-next]');
-      if (prev) prev.addEventListener('click', () => show(index - 1));
-      if (next) next.addEventListener('click', () => show(index + 1));
-      dots.forEach((dot) => dot.addEventListener('click', () => show(Number(dot.dataset.dot))));
-      thumbs.forEach((thumb) => thumb.addEventListener('click', () => show(Number(thumb.dataset.thumb))));
-
-      let startX = null;
-      carousel.addEventListener('touchstart', (e) => { startX = e.touches[0].clientX; }, { passive: true });
-      carousel.addEventListener('touchend', (e) => {
-        if (startX === null) return;
-        const diff = e.changedTouches[0].clientX - startX;
-        if (Math.abs(diff) > 45) show(index + (diff < 0 ? 1 : -1));
-        startX = null;
-      }, { passive: true });
-
-      carousel.tabIndex = 0;
-      carousel.addEventListener('keydown', (e) => {
-        if (e.key === 'ArrowLeft') show(index - 1);
-        if (e.key === 'ArrowRight') show(index + 1);
-      });
-      
-      show(0);
-    });
-  }
-
-  function copyBibtex() {
-    const text = document.getElementById('bibtex').innerText;
-    navigator.clipboard.writeText(text).then(() => {
-      const btn = event.target;
-      const old = btn.innerText;
-      btn.innerText = 'Copied!';
-      setTimeout(() => btn.innerText = old, 1200);
-    });
-  }
-
-  // 清除所有高亮
-  function clearAllHighlights() {
-    document.querySelectorAll('.highlight').forEach(el => el.classList.remove('highlight'));
-  }
-
-  // 高亮一组元素
-  function highlightTargets(ids) {
-    clearAllHighlights();
-    ids.forEach(id => {
-      const el = document.querySelector(id);
-      if (el) {
-        el.classList.add('highlight');
-        setTimeout(() => el.classList.remove('highlight'), 10000);
-      }
-    });
-  }
-
-  // 跳转并高亮（完美兼容所有链接）
-  function scrollToAndHighlight(id) {
-    const target = document.querySelector(id);
-    if (!target) return;
-
-    // 统一先滚动
-    target.scrollIntoView({ behavior: 'smooth', block: 'center' });
-
-    // 只对 finding 按钮做分组高亮
-    if (id === '#finding1' || id === '#finding2') {
-      highlightTargets(['#finding1', '#finding2']);
-    } else if (id === '#finding3' || id === '#finding4') {
-      highlightTargets(['#finding3', '#finding4']);
-    } else if (id === '#finding5' || id === '#finding6' || id === '#finding7') {
-      highlightTargets(['#finding5', '#finding6', '#finding7']);
-    } else {
-      // 其他链接（轮播、目录、普通锚点）：只跳转，不影响高亮
-      clearAllHighlights();
-      target.classList.add('highlight');
-      setTimeout(() => target.classList.remove('highlight'), 10000);
+      select.value = slides[index].id;
+      current.textContent = String(index + 1);
     }
+    function choose(next) { show(next); setHash(slides[index].id); }
+    slides.forEach((slide,i) => evidence.set(slide.id, {carousel, show:() => show(i)}));
+    carousel.querySelector('[data-total]').textContent = String(slides.length);
+    carousel.querySelector('[data-prev]').addEventListener('click', () => choose(index - 1));
+    carousel.querySelector('[data-next]').addEventListener('click', () => choose(index + 1));
+    select.addEventListener('change', () => choose(slides.findIndex(slide => slide.id === select.value)));
+    carousel.tabIndex = 0;
+    carousel.addEventListener('keydown', event => {
+      if (event.target.closest('select,input,textarea')) return;
+      if (!['ArrowLeft','ArrowRight'].includes(event.key)) return;
+      event.preventDefault(); choose(index + (event.key === 'ArrowRight' ? 1 : -1));
+    });
+    let touch = null;
+    carousel.addEventListener('touchstart', event => {
+      if (event.touches.length !== 1 || event.target.closest('select')) return;
+      touch = {x:event.touches[0].clientX,y:event.touches[0].clientY};
+    }, {passive:true});
+    carousel.addEventListener('touchend', event => {
+      if (!touch) return;
+      const x = event.changedTouches[0].clientX - touch.x;
+      const y = event.changedTouches[0].clientY - touch.y;
+      touch = null;
+      if (Math.abs(x) > 45 && Math.abs(x) > Math.abs(y)) choose(index + (x < 0 ? 1 : -1));
+    }, {passive:true});
+    carousel.addEventListener('touchcancel', () => {touch = null;}, {passive:true});
+    show(0);
+  });
+  function reveal(hash, focus) {
+    const target = evidence.get(hash.slice(1));
+    if (!target) return false;
+    target.show();
+    if (focus) target.carousel.focus({preventScroll:true});
+    target.carousel.scrollIntoView({block:'start',behavior:reducedMotion.matches ? 'instant' : 'smooth'});
+    return true;
   }
-
-  // 绑定所有锚点
-  document.querySelectorAll('a[href^="#"]').forEach(link => {
-    link.addEventListener('click', function(e) {
-      const href = this.getAttribute('href');
-      if (href.startsWith('#') && href.length > 1) {
-        e.preventDefault();
-        scrollToAndHighlight(href);
-      }
+  document.querySelectorAll('a[href^="#evidence-"]').forEach(link => {
+    link.addEventListener('click', event => {
+      if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey || event.button !== 0) return;
+      const hash = link.getAttribute('href');
+      if (!reveal(hash,true)) return;
+      event.preventDefault(); setHash(hash.slice(1));
     });
   });
+  window.addEventListener('hashchange', () => reveal(location.hash,false));
+  if (location.hash.startsWith('#evidence-')) requestAnimationFrame(() => reveal(location.hash,false));
 
-  bindZoomables();
-  initCarousels();
+  const dialog = document.getElementById('figure-dialog');
+  const fullImage = document.getElementById('figure-image');
+  let trigger;
+  document.querySelectorAll('.figure-open').forEach(button => {
+    button.addEventListener('click', () => {
+      trigger = button;
+      const image = button.querySelector('img');
+      fullImage.src = image.src;
+      fullImage.alt = image.alt;
+      document.getElementById('figure-caption').textContent = image.alt;
+      document.getElementById('figure-original').href = image.src;
+      dialog.showModal();
+    });
+  });
+  dialog.querySelector('.dialog-close').addEventListener('click', () => dialog.close());
+  dialog.addEventListener('click', event => {
+    if (event.target !== dialog) return;
+    const box = dialog.getBoundingClientRect();
+    if (event.clientX < box.left || event.clientX > box.right || event.clientY < box.top || event.clientY > box.bottom) dialog.close();
+  });
+  dialog.addEventListener('close', () => {fullImage.removeAttribute('src'); trigger.focus({preventScroll:true});});
+  document.getElementById('copy-bibtex').addEventListener('click', async () => {
+    const status = document.getElementById('copy-status');
+    try {
+      await navigator.clipboard.writeText(document.getElementById('bibtex').textContent.trim());
+      status.textContent = 'BibTeX copied.';
+    } catch {
+      status.textContent = 'Copy failed. Select the citation below to copy it manually.';
+    }
+  });
+  const nav = document.querySelector('.nav');
+  const menu = document.getElementById('site-nav');
+  const toggle = document.getElementById('menu-toggle');
+  const closeMenu = () => {menu.classList.remove('is-open'); toggle.setAttribute('aria-expanded','false');};
+  toggle.addEventListener('click', () => toggle.setAttribute('aria-expanded',String(menu.classList.toggle('is-open'))));
+  menu.querySelectorAll('a').forEach(link => link.addEventListener('click',closeMenu));
+  nav.addEventListener('keydown', event => {
+    if (event.key !== 'Escape' || !menu.classList.contains('is-open')) return;
+    closeMenu(); toggle.focus();
+  });
+  const sections = [...document.querySelectorAll('main > section[id]')];
+  const navLinks = [...menu.querySelectorAll('a')];
+  let queued = false;
+  function updateLocation() {
+    queued = false;
+    let active = [...sections].reverse().find(section => section.getBoundingClientRect().top <= nav.offsetHeight + 64);
+    if (scrollY + innerHeight >= document.documentElement.scrollHeight - 4) active = sections.at(-1);
+    navLinks.forEach(link => {
+      if (active && link.getAttribute('href') === `#${active.id}`) link.setAttribute('aria-current','location');
+      else link.removeAttribute('aria-current');
+    });
+  }
+  window.addEventListener('scroll', () => {
+    if (queued) return;
+    queued = true; requestAnimationFrame(updateLocation);
+  }, {passive:true});
+  window.addEventListener('resize', updateLocation);
+  updateLocation();
+})();
 </script>
 </body>
 </html>
